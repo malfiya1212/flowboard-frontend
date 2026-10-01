@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -6,31 +6,67 @@ import {
   Search,
   Plus,
   Bell,
-  HelpCircle,
   Kanban,
   User,
   LogOut,
   Settings,
   ChevronDown,
-  CheckCircle2,
-  Clock,
   Shield,
-  Tag,
-  ArrowRight
 } from 'lucide-react';
 
-// Sample indexed issues for Global Search (Section 19)
+// =====================================================
+// SAMPLE SEARCH DATA
+// =====================================================
+
 const searchableIssues = [
-  { key: 'FLW-25', title: 'Login authentication failure on Safari', type: 'Bug', status: 'OPEN' },
-  { key: 'FLW-10', title: 'Login page layout and form validation', type: 'Story', status: 'TO DO' },
-  { key: 'FLW-11', title: 'User registration with email verification', type: 'Story', status: 'TO DO' },
-  { key: 'FLW-4', title: 'Agile dashboard with project metrics and workload', type: 'Task', status: 'IN REVIEW' },
-  { key: 'FLW-7', title: 'Backend REST API authentication endpoints', type: 'Task', status: 'IN PROGRESS' },
-  { key: 'FLW-24', title: 'OAuth Google login integration', type: 'Story', status: 'BACKLOG' },
-  { key: 'FLW-12', title: 'Forgot password reset email workflow', type: 'Bug', status: 'IN PROGRESS' },
+  {
+    key: 'FLW-25',
+    title: 'Login authentication failure on Safari',
+    type: 'Bug',
+    status: 'OPEN',
+  },
+  {
+    key: 'FLW-10',
+    title: 'Login page layout and form validation',
+    type: 'Story',
+    status: 'TO DO',
+  },
+  {
+    key: 'FLW-11',
+    title: 'User registration with email verification',
+    type: 'Story',
+    status: 'TO DO',
+  },
+  {
+    key: 'FLW-4',
+    title: 'Agile dashboard with project metrics and workload',
+    type: 'Task',
+    status: 'IN REVIEW',
+  },
+  {
+    key: 'FLW-7',
+    title: 'Backend REST API authentication endpoints',
+    type: 'Task',
+    status: 'IN PROGRESS',
+  },
+  {
+    key: 'FLW-24',
+    title: 'OAuth Google login integration',
+    type: 'Story',
+    status: 'BACKLOG',
+  },
+  {
+    key: 'FLW-12',
+    title: 'Forgot password reset email workflow',
+    type: 'Bug',
+    status: 'IN PROGRESS',
+  },
 ];
 
-// Sample Notifications (Section 21)
+// =====================================================
+// SAMPLE NOTIFICATIONS
+// =====================================================
+
 const initialNotifications = [
   {
     id: 'n1',
@@ -70,264 +106,587 @@ const initialNotifications = [
   },
 ];
 
+// =====================================================
+// NAVBAR
+// =====================================================
+
 const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState(initialNotifications);
-
-  // Global Search state (Section 19)
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const searchContainerRef = useRef(null);
-
   const navigate = useNavigate();
 
-  // Filter search results
+  // Dropdown states
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Notification state
+  const [notifications, setNotifications] = useState(
+    initialNotifications
+  );
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // References
+  const searchContainerRef = useRef(null);
+  const notificationRef = useRef(null);
+  const userDropdownRef = useRef(null);
+
+  // ===================================================
+  // SEARCH RESULTS
+  // ===================================================
+
   const searchResults = searchQuery.trim()
-    ? searchableIssues.filter((item) => {
-        const q = searchQuery.toLowerCase();
+    ? searchableIssues.filter((issue) => {
+        const query = searchQuery.toLowerCase();
+
         return (
-          item.key.toLowerCase().includes(q) ||
-          item.title.toLowerCase().includes(q) ||
-          item.type.toLowerCase().includes(q)
+          issue.key.toLowerCase().includes(query) ||
+          issue.title.toLowerCase().includes(query) ||
+          issue.type.toLowerCase().includes(query) ||
+          issue.status.toLowerCase().includes(query)
         );
       })
     : [];
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  // ===================================================
+  // UNREAD NOTIFICATIONS
+  // ===================================================
+
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
+
+  // ===================================================
+  // MARK ALL NOTIFICATIONS AS READ
+  // ===================================================
 
   const markAllNotificationsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setNotifications((previousNotifications) =>
+      previousNotifications.map((notification) => ({
+        ...notification,
+        isRead: true,
+      }))
+    );
   };
+
+  // ===================================================
+  // SEARCH RESULT CLICK
+  // ===================================================
 
   const handleSelectSearchResult = (issue) => {
     setSearchQuery('');
     setIsSearchOpen(false);
-    navigate(`/issues?search=${issue.key}`);
+
+    navigate(`/issues?search=${encodeURIComponent(issue.key)}`);
   };
 
-  // Close search dropdown on click outside
+  // ===================================================
+  // KEYBOARD SHORTCUT
+  // CTRL + K / CMD + K
+  // ===================================================
+
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+    const handleKeyboardShortcut = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+
+        const searchInput =
+          searchContainerRef.current?.querySelector('input');
+
+        if (searchInput) {
+          searchInput.focus();
+          setIsSearchOpen(true);
+        }
+      }
+
+      if (event.key === 'Escape') {
         setIsSearchOpen(false);
+        setShowNotifications(false);
+        setShowUserDropdown(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener(
+      'keydown',
+      handleKeyboardShortcut
+    );
+
+    return () => {
+      document.removeEventListener(
+        'keydown',
+        handleKeyboardShortcut
+      );
+    };
   }, []);
 
+  // ===================================================
+  // CLOSE DROPDOWNS WHEN CLICKING OUTSIDE
+  // ===================================================
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Search
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setIsSearchOpen(false);
+      }
+
+      // Notifications
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+
+      // User dropdown
+      if (
+        userDropdownRef.current &&
+        !userDropdownRef.current.contains(event.target)
+      ) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener(
+      'mousedown',
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  // ===================================================
+  // TOGGLE NOTIFICATIONS
+  // ===================================================
+
+  const handleNotificationToggle = () => {
+    setShowNotifications((previous) => !previous);
+    setShowUserDropdown(false);
+  };
+
+  // ===================================================
+  // TOGGLE USER MENU
+  // ===================================================
+
+  const handleUserDropdownToggle = () => {
+    setShowUserDropdown((previous) => !previous);
+    setShowNotifications(false);
+  };
+
+  // ===================================================
+  // LOGOUT
+  // ===================================================
+
+  const handleLogout = () => {
+    setShowUserDropdown(false);
+
+    // Later:
+    // localStorage.removeItem('token');
+
+    navigate('/login');
+  };
+
+  // ===================================================
+  // RENDER
+  // ===================================================
+
   return (
-    <header className="sticky top-0 z-50 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-xs">
-      {/* Left branding & mobile menu toggle */}
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-50 h-14 bg-white border-b border-[#E2E8F0] flex items-center justify-between px-4 shadow-sm">
+
+      {/* =================================================
+          LEFT SECTION
+      ================================================= */}
+
+      <div className="flex items-center gap-4 min-w-0">
+
+        {/* Mobile Menu */}
         <button
-          className="md:hidden p-1.5 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
+          type="button"
           onClick={onToggleSidebar}
-          aria-label="Toggle navigation menu"
+          className="md:hidden p-1.5 rounded-md text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors cursor-pointer"
+          aria-label={
+            isSidebarOpen
+              ? 'Close navigation menu'
+              : 'Open navigation menu'
+          }
+          aria-expanded={isSidebarOpen}
         >
-          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          {isSidebarOpen ? (
+            <X size={20} />
+          ) : (
+            <Menu size={20} />
+          )}
         </button>
 
-        <Link to="/dashboard" className="flex items-center gap-2.5 no-underline">
-          <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-md flex items-center justify-center shadow-xs">
-            <Kanban size={18} />
+        {/* FlowBoard Logo */}
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-2.5 no-underline shrink-0"
+        >
+          <div className="w-8 h-8 bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] text-white rounded-lg flex items-center justify-center shadow-sm">
+            <Kanban size={18} strokeWidth={2.2} />
           </div>
-          <span className="font-bold text-lg text-gray-900 tracking-tight">
-            Flow<span className="text-blue-600">Board</span>
+
+          <span className="font-bold text-lg text-[#0F172A] tracking-tight hidden sm:block">
+            Flow<span className="text-[#4F46E5]">Board</span>
           </span>
         </Link>
       </div>
 
-      {/* Center Global Search (Section 19) */}
-      <div className="hidden md:flex flex-1 max-w-lg mx-6 relative" ref={searchContainerRef}>
+      {/* =================================================
+          GLOBAL SEARCH
+      ================================================= */}
+
+      <div
+        ref={searchContainerRef}
+        className="hidden md:flex flex-1 max-w-xl mx-6 relative"
+      >
         <div className="relative w-full flex items-center">
-          <Search size={16} className="absolute left-3 text-gray-400 pointer-events-none" />
+
+          <Search
+            size={16}
+            className="absolute left-3 text-[#94A3B8] pointer-events-none"
+          />
+
           <input
             type="text"
-            className="w-full pl-9 pr-12 py-1.5 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
-            placeholder="Search issues (e.g. FLW-25, login, bug, dashboard)..."
             value={searchQuery}
             onFocus={() => setIsSearchOpen(true)}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
               setIsSearchOpen(true);
             }}
+            placeholder="Search issues..."
+            aria-label="Search issues"
+            className="w-full pl-9 pr-16 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#4F46E5] focus:ring-2 focus:ring-[#EEF2FF] transition-all"
           />
-          <span className="absolute right-2.5 text-xs text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 pointer-events-none">
-            ⌘K
+
+          {/* Keyboard Shortcut */}
+          <span className="absolute right-2.5 text-[10px] font-medium text-[#94A3B8] bg-white border border-[#E2E8F0] rounded px-1.5 py-0.5 pointer-events-none">
+            Ctrl K
           </span>
         </div>
 
-        {/* Global Search Results Dropdown */}
+        {/* Search Results */}
         {isSearchOpen && searchQuery.trim() && (
-          <div className="absolute left-0 top-full mt-1.5 w-full bg-white border border-gray-200 rounded-xl shadow-2xl p-2 z-50 text-xs">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-3 py-1">
-              Matching Issues:
+          <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-[#E2E8F0] rounded-xl shadow-xl p-2 z-50">
+
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8] px-3 py-2">
+              Matching Issues
             </div>
+
             {searchResults.length > 0 ? (
               <div className="space-y-1">
+
                 {searchResults.map((issue) => (
-                  <div
+                  <button
+                    type="button"
                     key={issue.key}
-                    onClick={() => handleSelectSearchResult(issue)}
-                    className="p-2.5 hover:bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
+                    onClick={() =>
+                      handleSelectSearchResult(issue)
+                    }
+                    className="w-full text-left p-2.5 hover:bg-[#F8FAFC] rounded-lg flex items-center justify-between cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">
+
+                      <span className="font-mono font-bold text-[#4F46E5] bg-[#EEF2FF] px-1.5 py-0.5 rounded text-[11px] shrink-0">
                         {issue.key}
                       </span>
-                      <span className="font-semibold text-gray-800 truncate">{issue.title}</span>
+
+                      <span className="font-semibold text-[#334155] truncate">
+                        {issue.title}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] text-gray-400">{issue.type}</span>
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
+
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+
+                      <span className="text-[10px] text-[#94A3B8]">
+                        {issue.type}
+                      </span>
+
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F1F5F9] text-[#475569]">
                         {issue.status}
                       </span>
                     </div>
-                  </div>
+                  </button>
                 ))}
+
               </div>
             ) : (
-              <div className="p-4 text-center text-gray-400">
-                No issues found matching "{searchQuery}"
+              <div className="p-5 text-center text-[#94A3B8]">
+                <Search
+                  size={20}
+                  className="mx-auto mb-2 opacity-50"
+                />
+
+                <p className="text-xs">
+                  No issues found matching
+                </p>
+
+                <p className="text-xs font-semibold text-[#475569] mt-1">
+                  "{searchQuery}"
+                </p>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-3">
+      {/* =================================================
+          RIGHT SECTION
+      ================================================= */}
+
+      <div className="flex items-center gap-1.5">
+
+        {/* Create Issue */}
         <button
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md font-semibold text-sm transition-colors cursor-pointer shadow-xs"
-          onClick={() => navigate('/issues?create=true')}
-          title="Create New Issue"
+          type="button"
+          onClick={() =>
+            navigate('/issues?create=true')
+          }
+          title="Create new issue"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] hover:from-[#4338CA] hover:to-[#6D28D9] text-white px-3.5 py-1.5 rounded-lg font-semibold text-sm transition-all cursor-pointer shadow-sm hover:shadow-md"
         >
-          <Plus size={16} />
-          <span className="hidden sm:inline">Create</span>
+          <Plus size={16} strokeWidth={2.5} />
+
+          <span className="hidden sm:inline">
+            Create
+          </span>
         </button>
 
-        {/* Notifications Dropdown (Section 21) */}
-        <div className="relative">
+        {/* =================================================
+            NOTIFICATIONS
+        ================================================= */}
+
+        <div
+          ref={notificationRef}
+          className="relative"
+        >
           <button
-            className="relative p-2 rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
-            onClick={() => setShowNotifications(!showNotifications)}
+            type="button"
+            onClick={handleNotificationToggle}
             title="Notifications"
+            aria-label="Notifications"
+            aria-expanded={showNotifications}
+            className="relative p-2 rounded-full text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors cursor-pointer"
           >
             <Bell size={18} />
+
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[9px] font-extrabold flex items-center justify-center ring-2 ring-white">
-                {unreadCount}
+              <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 bg-[#EF4444] text-white rounded-full text-[9px] font-extrabold flex items-center justify-center ring-2 ring-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
 
+          {/* Notification Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-2xl p-3 z-50 space-y-2 animate-in fade-in zoom-in-95 duration-100">
-              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                <span className="font-bold text-sm text-gray-900">Notifications</span>
+            <div className="absolute right-0 mt-2 w-[340px] max-w-[calc(100vw-2rem)] bg-white border border-[#E2E8F0] rounded-xl shadow-xl p-3 z-50">
+
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#F1F5F9]">
+
+                <div>
+                  <h3 className="font-bold text-sm text-[#0F172A]">
+                    Notifications
+                  </h3>
+
+                  {unreadCount > 0 && (
+                    <p className="text-[10px] text-[#94A3B8] mt-0.5">
+                      {unreadCount} unread
+                    </p>
+                  )}
+                </div>
+
                 {unreadCount > 0 && (
                   <button
+                    type="button"
                     onClick={markAllNotificationsRead}
-                    className="text-[11px] text-blue-600 hover:underline cursor-pointer font-medium"
+                    className="text-[11px] text-[#4F46E5] hover:text-[#4338CA] hover:underline cursor-pointer font-semibold"
                   >
                     Mark all read
                   </button>
                 )}
               </div>
 
-              <div className="space-y-1.5 max-h-80 overflow-y-auto">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    onClick={() => {
-                      setShowNotifications(false);
-                      navigate(n.link);
-                    }}
-                    className={`p-2.5 rounded-lg flex items-start gap-2.5 cursor-pointer transition-colors text-xs ${
-                      n.isRead ? 'bg-white hover:bg-gray-50' : 'bg-blue-50/60 hover:bg-blue-50'
-                    }`}
-                  >
-                    <span className="text-base shrink-0">{n.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900">{n.title}</div>
-                      <div className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
-                        {n.subtitle}
+              {/* Notifications */}
+              <div className="space-y-1.5 max-h-80 overflow-y-auto mt-2">
+
+                {notifications.length > 0 ? (
+                  notifications.map((notification) => (
+                    <button
+                      type="button"
+                      key={notification.id}
+                      onClick={() => {
+                        setShowNotifications(false);
+                        navigate(notification.link);
+                      }}
+                      className={`w-full text-left p-2.5 rounded-lg flex items-start gap-2.5 cursor-pointer transition-colors text-xs ${
+                        notification.isRead
+                          ? 'bg-white hover:bg-[#F8FAFC]'
+                          : 'bg-[#EEF2FF] hover:bg-[#E0E7FF]'
+                      }`}
+                    >
+                      <span className="text-base shrink-0">
+                        {notification.icon}
+                      </span>
+
+                      <div className="flex-1 min-w-0">
+
+                        <div className="font-bold text-[#0F172A]">
+                          {notification.title}
+                        </div>
+
+                        <div className="text-[11px] text-[#64748B] mt-0.5 line-clamp-1">
+                          {notification.subtitle}
+                        </div>
+
+                        <div className="text-[10px] text-[#94A3B8] mt-1">
+                          {notification.time}
+                        </div>
                       </div>
-                      <div className="text-[10px] text-gray-400 mt-1">{n.time}</div>
-                    </div>
+
+                      {!notification.isRead && (
+                        <span className="w-1.5 h-1.5 bg-[#4F46E5] rounded-full mt-1.5 shrink-0" />
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className="py-8 text-center">
+                    <Bell
+                      size={22}
+                      className="mx-auto text-[#CBD5E1] mb-2"
+                    />
+
+                    <p className="text-xs font-medium text-[#64748B]">
+                      No notifications
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* User Profile Menu (Section 27 & 28) */}
-        <div className="relative">
+        {/* =================================================
+            USER MENU
+        ================================================= */}
+
+        <div
+          ref={userDropdownRef}
+          className="relative"
+        >
           <button
-            className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
-            onClick={() => setShowUserDropdown(!showUserDropdown)}
+            type="button"
+            onClick={handleUserDropdownToggle}
+            aria-label="Open user menu"
             aria-expanded={showUserDropdown}
+            className="flex items-center gap-2 p-1 rounded-full hover:bg-[#F1F5F9] transition-colors cursor-pointer"
           >
-            <div className="w-8 h-8 bg-blue-800 text-white rounded-full flex items-center justify-center font-bold text-xs">
+            {/* Avatar */}
+            <div className="w-8 h-8 bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] text-white rounded-full flex items-center justify-center font-bold text-xs shadow-sm">
               M
             </div>
-            <ChevronDown size={14} className="text-gray-500" />
+
+            <ChevronDown
+              size={14}
+              className={`text-[#64748B] transition-transform ${
+                showUserDropdown
+                  ? 'rotate-180'
+                  : ''
+              }`}
+            />
           </button>
 
+          {/* User Dropdown */}
           {showUserDropdown && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50 text-xs">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <div className="font-bold text-sm text-gray-900">Malefiya</div>
-                <div className="text-[11px] text-gray-500">malefiya@flowboard.com</div>
-                <span className="inline-block mt-1 font-bold text-[10px] text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
+            <div className="absolute right-0 mt-2 w-60 bg-white border border-[#E2E8F0] rounded-xl shadow-xl py-2 z-50">
+
+              {/* User Information */}
+              <div className="px-4 py-3 border-b border-[#F1F5F9]">
+
+                <div className="flex items-center gap-3">
+
+                  <div className="w-9 h-9 bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] text-white rounded-full flex items-center justify-center font-bold text-xs shrink-0">
+                    M
+                  </div>
+
+                  <div className="min-w-0">
+
+                    <div className="font-bold text-sm text-[#0F172A]">
+                      Malefiya
+                    </div>
+
+                    <div className="text-[11px] text-[#64748B] truncate">
+                      malefiya@flowboard.com
+                    </div>
+                  </div>
+                </div>
+
+                <span className="inline-block mt-2 font-bold text-[10px] text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] px-1.5 py-0.5 rounded">
                   Admin
                 </span>
               </div>
 
-              {/* Section 27 Profile Link */}
+              {/* Profile */}
               <Link
                 to="/profile"
-                className="flex items-center gap-2.5 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => setShowUserDropdown(false)}
+                onClick={() =>
+                  setShowUserDropdown(false)
+                }
+                className="flex items-center gap-2.5 px-4 py-2.5 text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
               >
                 <User size={15} />
-                Profile & Stats
+                <span>Profile & Stats</span>
               </Link>
 
-              {/* Section 28 Admin Dashboard Link */}
+              {/* Admin Dashboard */}
               <Link
                 to="/admin"
-                className="flex items-center gap-2.5 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => setShowUserDropdown(false)}
+                onClick={() =>
+                  setShowUserDropdown(false)
+                }
+                className="flex items-center gap-2.5 px-4 py-2.5 text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
               >
-                <Shield size={15} className="text-red-600" />
-                Admin Dashboard
+                <Shield
+                  size={15}
+                  className="text-[#EF4444]"
+                />
+
+                <span>Admin Dashboard</span>
               </Link>
 
-              {/* Section 24 Project Settings Link */}
+              {/* Project Settings */}
               <Link
                 to="/projects/settings"
-                className="flex items-center gap-2.5 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => setShowUserDropdown(false)}
+                onClick={() =>
+                  setShowUserDropdown(false)
+                }
+                className="flex items-center gap-2.5 px-4 py-2.5 text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
               >
                 <Settings size={15} />
-                Project Settings
+                <span>Project Settings</span>
               </Link>
 
-              <div className="my-1 border-t border-gray-100" />
+              {/* Divider */}
+              <div className="my-1 border-t border-[#F1F5F9]" />
 
+              {/* Logout */}
               <button
-                className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                onClick={() => {
-                  setShowUserDropdown(false);
-                  navigate('/login');
-                }}
+                type="button"
+                onClick={handleLogout}
+                className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-[#EF4444] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
               >
                 <LogOut size={15} />
-                Log Out
+                <span>Log Out</span>
               </button>
             </div>
           )}

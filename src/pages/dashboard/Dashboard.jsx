@@ -1,317 +1,472 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import {
   FolderKanban,
-  Clock,
-  CheckCircle2,
   CheckSquare,
+  Clock3,
+  CircleCheck,
   Plus,
   ArrowRight,
-  TrendingUp,
-  AlertCircle,
-  Briefcase,
-  Layers,
-  ExternalLink
-} from 'lucide-react';
-import CreateIssueModal from '../../components/modal/CreateIssueModal';
-import IssueDetailsModal from '../../components/issue/IssueDetailsModal';
+  MoreHorizontal,
+  LayoutDashboard,
+  KanbanSquare,
+  ListTodo,
+  Zap,
+  BarChart3,
+  Settings,
+  Search,
+  Bell,
+  ChevronDown,
+  LogOut,
+} from "lucide-react";
 
-const initialRecentProjects = [
-  { id: '1', key: 'FLW', name: 'Project A (FlowBoard)', type: 'Software', lead: 'Malefiya', issues: 12 },
-  { id: '2', key: 'MOB', name: 'Project B (Mobile Client)', type: 'Mobile', lead: 'Sarah Smith', issues: 8 },
-  { id: '3', key: 'SRV', name: 'Project C (Core Backend)', type: 'Backend', lead: 'Alex Johnson', issues: 11 },
-];
+function Dashboard() {
+  const stats = [
+    {
+      title: "My Projects",
+      value: "5",
+      description: "2 active workspaces",
+      icon: FolderKanban,
+    },
+    {
+      title: "Open Issues",
+      value: "24",
+      description: "Across all projects",
+      icon: CheckSquare,
+    },
+    {
+      title: "Assigned to Me",
+      value: "8",
+      description: "Require your action",
+      icon: Clock3,
+    },
+    {
+      title: "Completed",
+      value: "31",
+      description: "This sprint",
+      icon: CircleCheck,
+    },
+  ];
 
-const initialMyTasks = [
-  {
-    key: 'FLW-1',
-    title: 'Fix login',
-    summary: 'Fix login',
-    status: 'TO DO',
-    statusLabel: 'To Do',
-    priority: 'High',
-    issueType: 'Bug',
-    type: 'Bug',
-    points: 3,
-    description: 'Fix login button styling and token expiration validation.',
-    assignee: 'John Doe',
-  },
-  {
-    key: 'FLW-2',
-    title: 'Build dashboard',
-    summary: 'Build dashboard',
-    status: 'IN PROGRESS',
-    statusLabel: 'Progress',
-    priority: 'Highest',
-    issueType: 'Task',
-    type: 'Task',
-    points: 5,
-    description: 'Construct Jira-style overview dashboard with recent projects and task tracking.',
-    assignee: 'John Doe',
-  },
-  {
-    key: 'FLW-3',
-    title: 'Create API',
-    summary: 'Create API',
-    status: 'DONE',
-    statusLabel: 'Done',
-    priority: 'Medium',
-    issueType: 'Story',
-    type: 'Story',
-    points: 8,
-    description: 'Create REST API endpoints for user authentication, projects, and sprint planning.',
-    assignee: 'John Doe',
-  },
-];
+  const tasks = [
+    {
+      key: "FLW-101",
+      title: "Fix login authentication",
+      project: "FlowBoard",
+      status: "To Do",
+      priority: "High",
+    },
+    {
+      key: "FLW-102",
+      title: "Build dashboard interface",
+      project: "FlowBoard",
+      status: "In Progress",
+      priority: "Highest",
+    },
+    {
+      key: "FLW-103",
+      title: "Create REST API",
+      project: "Backend",
+      status: "In Review",
+      priority: "Medium",
+    },
+    {
+      key: "FLW-104",
+      title: "Write authentication tests",
+      project: "FlowBoard",
+      status: "Done",
+      priority: "Low",
+    },
+  ];
 
-const Dashboard = () => {
-  const navigate = useNavigate();
-  const [tasks, setTasks] = useState(initialMyTasks);
-  const [selectedIssue, setSelectedIssue] = useState(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const projects = [
+    {
+      key: "FLW",
+      name: "FlowBoard",
+      type: "Software",
+      issues: 12,
+    },
+    {
+      key: "MOB",
+      name: "Mobile Client",
+      type: "Mobile",
+      issues: 8,
+    },
+    {
+      key: "API",
+      name: "Core Backend",
+      type: "Backend",
+      issues: 11,
+    },
+  ];
 
-  // Status mapping badge helper
-  const getStatusBadge = (status) => {
+  const getStatusStyle = (status) => {
     switch (status) {
-      case 'TO DO':
-      case 'OPEN':
-        return 'bg-gray-100 text-gray-700 border-gray-300';
-      case 'IN PROGRESS':
-        return 'bg-blue-100 text-blue-700 border-blue-300';
-      case 'IN REVIEW':
-      case 'IN TESTING':
-        return 'bg-amber-100 text-amber-700 border-amber-300';
-      case 'DONE':
-      case 'RESOLVED':
-      case 'CLOSED':
-        return 'bg-emerald-100 text-emerald-700 border-emerald-300';
+      case "Done":
+        return "bg-green-50 text-green-700";
+      case "In Progress":
+        return "bg-blue-50 text-blue-700";
+      case "In Review":
+        return "bg-purple-50 text-purple-700";
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-300';
+        return "bg-gray-100 text-gray-600";
     }
   };
 
-  const handleUpdateStatus = (issueKey, newStatus) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.key === issueKey ? { ...t, status: newStatus } : t))
-    );
-    if (selectedIssue && selectedIssue.key === issueKey) {
-      setSelectedIssue((prev) => ({ ...prev, status: newStatus }));
+  const getPriorityStyle = (priority) => {
+    switch (priority) {
+      case "Highest":
+        return "text-red-600";
+      case "High":
+        return "text-orange-600";
+      case "Medium":
+        return "text-yellow-600";
+      default:
+        return "text-gray-500";
     }
-  };
-
-  const handleCreateIssue = (newIssueData) => {
-    const newTask = {
-      key: `FLW-${tasks.length + 4}`,
-      title: newIssueData.title,
-      summary: newIssueData.title,
-      status: 'TO DO',
-      statusLabel: 'To Do',
-      priority: newIssueData.priority || 'Medium',
-      issueType: newIssueData.issueType || 'Task',
-      type: newIssueData.issueType || 'Task',
-      points: newIssueData.storyPoints || 3,
-      description: newIssueData.description || '',
-      assignee: newIssueData.assignee || 'John Doe',
-    };
-    setTasks([newTask, ...tasks]);
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      {/* Top Banner / Breadcrumb */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
-          <p className="text-xs text-gray-500 mt-1">FlowBoard Overview & Workspace Metrics</p>
+    <div className="flex min-h-screen bg-[#f4f5f7] text-gray-900">
+      {/* SIDEBAR */}
+      <aside className="hidden w-64 shrink-0 bg-[#172b4d] text-white lg:flex lg:flex-col">
+        {/* Logo */}
+        <div className="flex h-16 items-center border-b border-white/10 px-6">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0c66e4] font-bold">
+            F
+          </div>
+
+          <span className="ml-3 text-lg font-bold tracking-tight">
+            FlowBoard
+          </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/projects')}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-xs transition-colors cursor-pointer"
-          >
-            <FolderKanban size={16} />
-            <span>Projects</span>
-          </button>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 rounded-lg text-sm font-semibold text-white hover:bg-blue-700 shadow-xs transition-colors cursor-pointer"
-          >
-            <Plus size={16} />
-            <span>Create Issue</span>
-          </button>
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-5">
+          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+            Workspace
+          </p>
+
+          <div className="space-y-1">
+            <button className="flex w-full items-center gap-3 rounded-lg bg-white/10 px-3 py-2.5 text-sm font-medium">
+              <LayoutDashboard size={18} />
+              Dashboard
+            </button>
+
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white">
+              <FolderKanban size={18} />
+              Projects
+            </button>
+
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white">
+              <ListTodo size={18} />
+              My Work
+            </button>
+
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white">
+              <KanbanSquare size={18} />
+              Kanban Board
+            </button>
+
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white">
+              <Zap size={18} />
+              Scrum Board
+            </button>
+          </div>
+
+          <p className="px-3 pb-2 pt-7 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+            Manage
+          </p>
+
+          <div className="space-y-1">
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white">
+              <BarChart3 size={18} />
+              Reports
+            </button>
+
+            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white">
+              <Settings size={18} />
+              Settings
+            </button>
+          </div>
+        </nav>
+
+        {/* User */}
+        <div className="border-t border-white/10 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0c66e4] text-sm font-semibold">
+              MA
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">Malefiya</p>
+
+              <p className="truncate text-xs text-gray-400">
+                Software Engineer
+              </p>
+            </div>
+
+            <button className="text-gray-400 hover:text-white">
+              <LogOut size={17} />
+            </button>
+          </div>
         </div>
-      </div>
+      </aside>
 
-      {/* 4 Main Summary Stat Cards per Specification */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {/* My Projects: 5 */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs hover:border-blue-300 transition-all">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            My Projects
-          </div>
-          <div className="text-3xl font-extrabold text-gray-900 mt-2">5</div>
-          <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
-            <span>2 active workspaces</span>
-          </div>
-        </div>
+      {/* MAIN AREA */}
+      <div className="min-w-0 flex-1">
+        {/* TOP BAR */}
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
+          {/* Search */}
+          <div className="relative hidden w-full max-w-md md:block">
+            <Search
+              size={17}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
 
-        {/* Open Issues: 24 */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs hover:border-blue-300 transition-all">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Open Issues
-          </div>
-          <div className="text-3xl font-extrabold text-blue-600 mt-2">24</div>
-          <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
-            <span>Across all sprints</span>
-          </div>
-        </div>
-
-        {/* Assigned to Me: 8 */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs hover:border-blue-300 transition-all">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Assigned to Me
-          </div>
-          <div className="text-3xl font-extrabold text-amber-600 mt-2">8</div>
-          <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
-            <span>Require your action</span>
-          </div>
-        </div>
-
-        {/* Completed: 31 */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs hover:border-blue-300 transition-all">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Completed
-          </div>
-          <div className="text-3xl font-extrabold text-emerald-600 mt-2">31</div>
-          <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1">
-            <span>This sprint cycle</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Columns: My Tasks */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <CheckSquare size={20} className="text-blue-600" />
-              <span>My Tasks</span>
-            </h2>
-            <Link to="/issues" className="text-xs font-semibold text-blue-600 hover:underline">
-              View all issues
-            </Link>
+            <input
+              type="text"
+              placeholder="Search projects, issues..."
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none transition focus:border-[#0c66e4] focus:bg-white"
+            />
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl shadow-xs divide-y divide-gray-100 overflow-hidden">
-            {tasks.map((task) => (
-              <div
-                key={task.key}
-                onClick={() => setSelectedIssue(task)}
-                className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer gap-4"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span
-                    className={`text-[11px] font-bold px-2 py-1 rounded border uppercase ${getStatusBadge(
-                      task.status
-                    )}`}
-                  >
-                    [{task.status === 'TO DO' ? 'To Do' : task.status === 'IN PROGRESS' ? 'Progress' : 'Done'}]
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-gray-900 truncate">
-                      {task.title}
+          <div className="ml-auto flex items-center gap-3">
+            {/* Create */}
+            <button className="inline-flex items-center gap-2 rounded-lg bg-[#0c66e4] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0052cc]">
+              <Plus size={17} />
+              <span className="hidden sm:inline">Create issue</span>
+            </button>
+
+            {/* Notification */}
+            <button className="relative rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700">
+              <Bell size={19} />
+
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
+            </button>
+
+            {/* Profile */}
+            <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-gray-100">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#172b4d] text-xs font-semibold text-white">
+                MA
+              </div>
+
+              <ChevronDown
+                size={16}
+                className="hidden text-gray-400 sm:block"
+              />
+            </button>
+          </div>
+        </header>
+
+        {/* CONTENT */}
+        <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
+          {/* Page heading */}
+          <div className="mb-6">
+            <p className="text-sm font-medium text-[#0c66e4]">Workspace</p>
+
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#172b4d]">
+              Dashboard
+            </h1>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Overview of your projects, issues and current work.
+            </p>
+          </div>
+
+          {/* STATISTICS */}
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+
+              return (
+                <div
+                  key={stat.title}
+                  className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">
+                        {stat.title}
+                      </p>
+
+                      <p className="mt-2 text-3xl font-bold tracking-tight text-[#172b4d]">
+                        {stat.value}
+                      </p>
+
+                      <p className="mt-2 text-xs text-gray-500">
+                        {stat.description}
+                      </p>
                     </div>
-                    <div className="text-xs font-mono text-gray-400 mt-0.5">
-                      {task.key} • {task.priority} Priority
+
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#e9f2ff] text-[#0c66e4]">
+                      <Icon size={19} />
                     </div>
                   </div>
                 </div>
+              );
+            })}
+          </section>
 
-                <div className="flex items-center gap-2 text-xs text-gray-400 shrink-0">
-                  <span className="font-semibold text-gray-600">{task.points} pts</span>
-                  <ArrowRight size={14} />
+          {/* MAIN GRID */}
+          <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+            {/* MY WORK */}
+            <div className="rounded-xl border border-gray-200 bg-white shadow-sm xl:col-span-2">
+              <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+                <div>
+                  <h2 className="text-base font-semibold text-[#172b4d]">
+                    My Work
+                  </h2>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    Issues currently assigned to you
+                  </p>
                 </div>
-              </div>
-            ))}
-          </div>
 
-          {/* Quick Sprint Tracker Banner */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                <Layers size={20} />
+                <button className="text-sm font-semibold text-[#0c66e4] hover:underline">
+                  View all
+                </button>
               </div>
+
               <div>
-                <div className="font-bold text-sm text-gray-900">Active Sprint: Sprint 1</div>
-                <div className="text-xs text-gray-500">8 days remaining • 42 / 50 Story Points complete</div>
+                {tasks.map((task) => (
+                  <div
+                    key={task.key}
+                    className="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 transition last:border-b-0 hover:bg-gray-50"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f1f2f4] text-xs font-bold text-gray-600">
+                        {task.key.split("-")[1]}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[#172b4d]">
+                          {task.title}
+                        </p>
+
+                        <p className="mt-1 text-xs text-gray-500">
+                          {task.key} · {task.project}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={`hidden text-xs font-semibold sm:inline ${getPriorityStyle(
+                          task.priority
+                        )}`}
+                      >
+                        {task.priority}
+                      </span>
+
+                      <span
+                        className={`rounded-md px-2.5 py-1 text-xs font-semibold ${getStatusStyle(
+                          task.status
+                        )}`}
+                      >
+                        {task.status}
+                      </span>
+
+                      <button className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                        <MoreHorizontal size={17} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <Link
-              to="/scrum"
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-xs transition-colors"
-            >
-              Open Board
-            </Link>
-          </div>
-        </div>
 
-        {/* Right Column: Recent Projects */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Briefcase size={20} className="text-blue-600" />
-              <span>Recent Projects</span>
-            </h2>
-            <Link to="/projects" className="text-xs font-semibold text-blue-600 hover:underline">
-              View all
-            </Link>
-          </div>
+            {/* PROJECTS */}
+            <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+                <div>
+                  <h2 className="text-base font-semibold text-[#172b4d]">
+                    Recent Projects
+                  </h2>
 
-          <div className="space-y-3">
-            {initialRecentProjects.map((p) => (
-              <div
-                key={p.id}
-                onClick={() => navigate('/scrum')}
-                className="p-4 bg-white border border-gray-200 rounded-xl shadow-xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
-                      {p.key}
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm text-gray-900">{p.name}</div>
-                      <div className="text-[11px] text-gray-400">Lead: {p.lead}</div>
-                    </div>
-                  </div>
-                  <ExternalLink size={14} className="text-gray-400" />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Your active workspaces
+                  </p>
                 </div>
-                <div className="text-xs text-gray-500 pt-1 flex items-center justify-between border-t border-gray-100">
-                  <span>{p.type} Project</span>
-                  <span className="font-semibold text-blue-600">{p.issues} issues</span>
-                </div>
+
+                <button className="text-sm font-semibold text-[#0c66e4] hover:underline">
+                  View all
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
+
+              <div className="p-3">
+                {projects.map((project) => (
+                  <button
+                    key={project.key}
+                    className="group flex w-full items-center justify-between rounded-lg p-3 text-left transition hover:bg-gray-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#e9f2ff] text-xs font-bold text-[#0c66e4]">
+                        {project.key}
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold text-[#172b4d]">
+                          {project.name}
+                        </p>
+
+                        <p className="mt-1 text-xs text-gray-500">
+                          {project.type} · {project.issues} issues
+                        </p>
+                      </div>
+                    </div>
+
+                    <ArrowRight
+                      size={16}
+                      className="text-gray-300 transition group-hover:translate-x-1 group-hover:text-gray-500"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ACTIVE SPRINT */}
+          <section className="mt-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-green-500" />
+
+                  <span className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Active Sprint
+                  </span>
+                </div>
+
+                <h2 className="mt-2 text-lg font-bold text-[#94B1E4]">
+                  Sprint 12
+                </h2>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  8 days remaining · 42 of 50 story points completed
+                </p>
+              </div>
+
+              <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                Open board
+                <ArrowRight size={16} />
+              </button>
+            </div>
+
+            <div className="mt-5 h-2 overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full rounded-full bg-[#0c66e4]"
+                style={{ width: "84%" }}
+              />
+            </div>
+
+            <div className="mt-2 flex justify-between text-xs text-gray-500">
+              <span>Progress</span>
+              <span>84%</span>
+            </div>
+          </section>
+        </main>
       </div>
-
-      {/* Modals */}
-      <CreateIssueModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateIssue}
-      />
-
-      <IssueDetailsModal
-        issue={selectedIssue}
-        isOpen={!!selectedIssue}
-        onClose={() => setSelectedIssue(null)}
-        onUpdateStatus={handleUpdateStatus}
-      />
     </div>
   );
-};
+}
 
 export default Dashboard;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Kanban, Lock, Mail, ArrowRight, AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { authService } from '../../services/authService';
+navigate('/dashboard');
 
 const Login = () => {
   const [loginInput, setLoginInput] = useState('john.doe@flowboard.com');

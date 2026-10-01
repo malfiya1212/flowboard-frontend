@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Kanban as KanbanIcon, Plus, Filter, GripVertical, CheckCircle2 } from 'lucide-react';
 import CreateIssueModal from '../../components/modal/CreateIssueModal';
 import IssueDetailsModal from '../../components/issue/IssueDetailsModal';

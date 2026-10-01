@@ -1,43 +1,334 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --primary: #0052cc;
-    --primary-hover: #0747a6;
-    --primary-light: #deebff;
-    --bg-main: #f4f5f7;
-    --bg-surface: #ffffff;
-    --border-color: #ebecf0;
-    --text-main: #172b4d;
-    --text-secondary: #5e6c84;
-    --text-muted: #8993a4;
-  }
+/* =========================================================
+   FLOWBOARD DESIGN SYSTEM
+   Jira-inspired professional UI
+   Tailwind CSS v4
+   ========================================================= */
 
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+@theme {
+    --color-primary: #0c66e4;
+    --color-primary-hover: #0055b8;
+    --color-primary-light: #deebff;
+    --color-bg-main: #f4f5f7;
+    --color-bg-surface: #ffffff;
+    --color-bg-subtle: #f7f8fa;
+    --color-bg-hover: #ebecf0;
+    --color-border: #dfe1e6;
+    --color-border-light: #ebecf0;
+    --color-text-main: #172b4d;
+    --color-text-secondary: #5e6c84;
+    --color-text-muted: #8993a4;
+    --color-success: #36b37e;
+    --color-success-light: #e3fcef;
+    --color-warning: #ffab00;
+    --color-warning-light: #fffae6;
+    --color-danger: #de350b;
+    --color-danger-light: #ffebe6;
+    --color-info: #00a3bf;
+    --color-info-light: #e6fcff;
 }
 
-/* Custom scrollbars */
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+@layer base {
+    * {
+        box-sizing: border-box;
+    }
+    html {
+        margin: 0;
+        padding: 0;
+        background-color: #f4f5f7;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    }
+    body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background-color: #f4f5f7;
+        color: #172b4d;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    button,
+    input,
+    textarea,
+    select {
+        font: inherit;
+    }
+    button {
+        cursor: pointer;
+    }
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+    #root {
+        min-height: 100vh;
+    }
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+    width: 7px;
+    height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(9, 30, 66, 0.2);
-  border-radius: 3px;
+    background: #c1c7d0;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(9, 30, 66, 0.35);
+    background: #a5adba;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-[3px] px-3 py-1.5 text-sm font-medium transition-colors;
+    }
+    .btn-primary {
+        @apply bg-primary text-white;
+    }
+    .btn-primary:hover {
+        @apply bg-primary-hover;
+    }
+    .btn-secondary {
+        @apply border border-border bg-white text-text-main;
+    }
+    .btn-secondary:hover {
+        @apply bg-bg-hover;
+    }
+    .btn-ghost {
+        @apply bg-transparent text-text-secondary;
+    }
+    .btn-ghost:hover {
+        @apply bg-bg-hover text-text-main;
+    }
+    .btn-danger {
+        @apply bg-danger text-white;
+    }
+    .btn-danger:hover {
+        @apply bg-red-700;
+    }
+    .btn-icon {
+        @apply inline-flex items-center justify-center rounded-[3px] p-1.5 text-text-secondary transition-colors;
+    }
+    .btn-icon:hover {
+        @apply bg-bg-hover text-text-main;
+    }
+}
+
+
+/* =========================================================
+   FORM ELEMENTS
+   ========================================================= */
+
+@layer components {
+    .input {
+        @apply w-full rounded-[3px] border border-border bg-white px-3 py-2 text-sm text-text-main outline-none transition-colors;
+    }
+    .input::placeholder {
+        color: #8993a4;
+    }
+    .input:focus {
+        border-color: #0c66e4;
+        box-shadow: 0 0 0 1px #0c66e4;
+    }
+    .select {
+        @apply rounded-[3px] border border-border bg-white px-3 py-2 text-sm text-text-main outline-none;
+    }
+    .select:focus {
+        border-color: #0c66e4;
+        box-shadow: 0 0 0 1px #0c66e4;
+    }
+}
+
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+
+@layer components {
+    .surface {
+        @apply border border-border-light bg-white;
+    }
+    .card {
+        @apply rounded-[6px] border border-border-light bg-white;
+    }
+    .card-hover {
+        @apply transition-shadow;
+    }
+    .card-hover:hover {
+        @apply shadow-sm;
+    }
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+@layer components {
+    .sidebar {
+        @apply border-r border-border-light bg-white;
+    }
+    .sidebar-item {
+        @apply flex min-h-9 items-center gap-3 rounded-[3px] px-3 text-sm font-medium text-text-secondary transition-colors;
+    }
+    .sidebar-item:hover {
+        @apply bg-bg-hover text-text-main;
+    }
+    .sidebar-item.active {
+        @apply bg-primary-light text-primary;
+    }
+}
+
+
+/* =========================================================
+   PROJECT NAVIGATION
+   ========================================================= */
+
+@layer components {
+    .project-nav-item {
+        @apply flex items-center gap-2 rounded-[3px] px-3 py-2 text-sm font-medium text-text-secondary transition-colors;
+    }
+    .project-nav-item:hover {
+        @apply bg-bg-hover text-text-main;
+    }
+    .project-nav-item.active {
+        @apply bg-primary-light text-primary;
+    }
+}
+
+
+/* =========================================================
+   SCRUM / KANBAN BOARD
+   ========================================================= */
+
+@layer components {
+    .board {
+        @apply flex gap-3 overflow-x-auto pb-4;
+    }
+    .board-column {
+        @apply flex min-w-[280px] max-w-[320px] flex-1 flex-col rounded-[6px] bg-[#ebecf0] p-2;
+    }
+    .board-column-header {
+        @apply flex items-center justify-between px-2 py-2 text-xs font-semibold uppercase tracking-wide text-text-secondary;
+    }
+    .issue-card {
+        @apply mb-2 rounded-[4px] border border-border-light bg-white p-3 shadow-none transition-shadow;
+    }
+    .issue-card:hover {
+        border-color: #b3bac5;
+        box-shadow: 0 1px 3px rgb(9 30 66 / 15%);
+    }
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+@layer components {
+    .status-todo {
+        @apply bg-bg-hover text-text-secondary;
+    }
+    .status-progress {
+        @apply bg-primary-light text-primary;
+    }
+    .status-review {
+        @apply bg-warning-light text-[#974f0c];
+    }
+    .status-done {
+        @apply bg-success-light text-[#006644];
+    }
+    .priority-high {
+        @apply text-danger;
+    }
+    .priority-medium {
+        @apply text-warning;
+    }
+    .priority-low {
+        @apply text-success;
+    }
+}
+
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+
+@layer components {
+    .badge {
+        @apply inline-flex items-center rounded-[3px] px-2 py-0.5 text-xs font-semibold;
+    }
+    .badge-blue {
+        @apply bg-primary-light text-primary;
+    }
+    .badge-green {
+        @apply bg-success-light text-[#006644];
+    }
+    .badge-yellow {
+        @apply bg-warning-light text-[#974f0c];
+    }
+    .badge-red {
+        @apply bg-danger-light text-danger;
+    }
+    .badge-gray {
+        @apply bg-bg-hover text-text-secondary;
+    }
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+@layer components {
+    .table {
+        @apply w-full border-collapse;
+    }
+    .table th {
+        @apply border-b border-border bg-bg-subtle px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary;
+    }
+    .table td {
+        @apply border-b border-border-light px-4 py-3 text-sm text-text-main;
+    }
+    .table tbody tr:hover {
+        @apply bg-bg-subtle;
+    }
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+@layer components {
+    .modal-overlay {
+        @apply fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4;
+    }
+    .modal {
+        @apply w-full max-w-lg rounded-[6px] border border-border bg-white shadow-xl;
+    }
 }
