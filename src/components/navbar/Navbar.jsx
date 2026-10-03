@@ -299,7 +299,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   // ===================================================
 
   return (
-    <header className="sticky top-0 z-50 h-14 bg-white border-b border-[#E2E8F0] flex items-center justify-between px-4 shadow-sm">
+    <header className="sticky top-0 z-50 h-14 bg-white border-b border-[#2B7EEB] flex items-center justify-between px-4 shadow-sm">
 
       {/* =================================================
           LEFT SECTION
@@ -311,7 +311,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="md:hidden p-1.5 rounded-md text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors cursor-pointer"
+          className="md:hidden p-1.5 rounded-md text-[#475569] hover:bg-[#428CD5] hover:text-[#0F172A] transition-colors cursor-pointer"
           aria-label={
             isSidebarOpen
               ? 'Close navigation menu'
@@ -335,7 +335,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             <Kanban size={18} strokeWidth={2.2} />
           </div>
 
-          <span className="font-bold text-lg text-[#0F172A] tracking-tight hidden sm:block">
+          <span className="font-bold text-lg text-[#2464FA] tracking-tight hidden sm:block">
             Flow<span className="text-[#4F46E5]">Board</span>
           </span>
         </Link>
@@ -366,7 +366,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             }}
             placeholder="Search issues..."
             aria-label="Search issues"
-            className="w-full pl-9 pr-16 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#4F46E5] focus:ring-2 focus:ring-[#EEF2FF] transition-all"
+            className="w-full pl-9 pr-16 py-1.5 bg-[#F3F0EC] border border-[#247DF0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#4F46E5] focus:ring-2 focus:ring-[#EEF2FF] transition-all"
           />
 
           {/* Keyboard Shortcut */}
@@ -393,7 +393,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                     onClick={() =>
                       handleSelectSearchResult(issue)
                     }
-                    className="w-full text-left p-2.5 hover:bg-[#F8FAFC] rounded-lg flex items-center justify-between cursor-pointer transition-colors"
+                    className="w-full text-left p-2.5 hover:bg-[rgb(248, 250, 252)] rounded-lg flex items-center justify-between cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
 
@@ -453,7 +453,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             navigate('/issues?create=true')
           }
           title="Create new issue"
-          className="flex items-center gap-1.5 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] hover:from-[#4338CA] hover:to-[#6D28D9] text-white px-3.5 py-1.5 rounded-lg font-semibold text-sm transition-all cursor-pointer shadow-sm hover:shadow-md"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-[#8D8AC8] to-[#7C3AED] hover:from-[#4338CA] hover:to-[#6D28D9] text-white px-3.5 py-1.5 rounded-lg font-semibold text-sm transition-all cursor-pointer shadow-sm hover:shadow-md"
         >
           <Plus size={16} strokeWidth={2.5} />
 

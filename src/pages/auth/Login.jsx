@@ -1,239 +1,271 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Kanban, Lock, Mail, ArrowRight, AlertCircle, CheckCircle2, X } from 'lucide-react';
-import { authService } from '../../services/authService';
-navigate('/dashboard');
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, AlertCircle, Layout } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
+import { useMsal } from '@azure/msal-react';
+import axios from 'axios';
 
-const Login = () => {
-  const [loginInput, setLoginInput] = useState('john.doe@flowboard.com');
-  const [password, setPassword] = useState('password123');
-  const [rememberMe, setRememberMe] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+// --- REUSABLE INPUT COMPONENT ---
+const FormInput = ({ label, name, type, value, onChange, placeholder, isPassword, showPassword, togglePassword }) => (
+  <div className="relative animate-in fade-in slide-in-from-top-2 duration-300">
+    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">{label}</label>
+    <input 
+      type={isPassword && !showPassword ? "password" : (isPassword && showPassword ? "text" : type)} 
+      required
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full h-11 px-3 py-2 border-2 border-slate-200 rounded-md outline-none text-slate-900 transition-colors focus:border-blue-600 hover:bg-slate-50 focus:bg-white"
+    />
+    {isPassword && (
+      <button 
+        type="button" onClick={togglePassword}
+        className="absolute right-3 top-[28px] p-1 text-slate-400 hover:text-slate-600 transition-colors rounded"
+      >
+        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    )}
+  </div>
+);
 
-  // Forgot password modal state
-  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotSuccess, setForgotSuccess] = useState('');
-
+export default function Login() {
+  const [isLoginMode, setIsLoginMode] = useState(true);
   const navigate = useNavigate();
+  const { instance: msalInstance } = useMsal();
 
-  const handleLoginSubmit = async (e) => {
+  // Unified Form State
+  const [formData, setFormData] = useState({
+    fullName: '', username: '', email: '', password: '', confirmPassword: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  // --- Native Backend Auth ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
-    setLoading(true);
 
+    if (!isLoginMode && formData.password !== formData.confirmPassword) {
+      return setErrorMessage('Passwords do not match. Please re-enter your passwords.');
+    }
+    if (!isLoginMode && formData.password.length < 6) {
+      return setErrorMessage('Password must be at least 6 characters long.');
+    }
+
+    setIsLoading(true);
     try {
-      await authService.login({
-        loginInput,
-        password,
-        rememberMe
-      });
-      navigate('/choose-method');
+      // API call goes here: authService.login() or authService.register()
+      console.log("Submitting:", formData);
+      navigate('/dashboard');
     } catch (err) {
-      setErrorMessage(
-        err.response?.data?.message || 'Invalid email/username or password. Please try again.'
-      );
+      setErrorMessage('Authentication failed. Please check your details.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleForgotSubmit = async (e) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) return;
+  // --- Google Auth ---
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        alert(`Welcome, ${data.name}`);
+        navigate('/dashboard'); 
+      } catch (error) {
+        setErrorMessage("Google authentication failed.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => setErrorMessage("Google login failed.")
+  });
 
+  // --- Microsoft Auth ---
+  const loginWithMicrosoft = async () => {
+    setIsLoading(true);
     try {
-      const res = await authService.forgotPassword(forgotEmail.trim());
-      setForgotSuccess(res.message || 'Password reset link sent!');
-    } catch (err) {
-      setForgotSuccess('If an account exists with that email, a password reset link has been sent.');
+      const response = await msalInstance.loginPopup({ scopes: ["user.read"] });
+      alert(`Welcome, ${response.account.name}`);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Microsoft login was cancelled or failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- Apple Auth Placeholder ---
+  const loginWithApple = async () => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000)); 
+      alert("Apple SSO requires the react-apple-signin-auth package configuration.");
+    } catch (error) {
+      setErrorMessage("Apple login failed.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-xl w-full max-w-md p-8 space-y-6">
-        {/* Header */}
-        <div className="text-center flex flex-col items-center gap-2">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-xl flex items-center justify-center shadow-md mb-1">
-            <Kanban size={26} />
+    <>
+      {/* Forced CSS override to completely kill Chrome's yellow autofill */}
+      <style>{`
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 1000px rgb(255, 245, 245) inset !important;
+          -webkit-text-fill-color: #EBE5E5 !important;
+          transition: background-color 5000s ease-in-out 0s !important;
+        }
+
+        .animate-slow-pan { animation: slowPan 35s ease-in-out infinite; }
+        @keyframes slowPan {
+          0% { transform: scale(1.05) translate(0%, 0%); }
+          50% { transform: scale(1.12) translate(-1.5%, -1%); }
+          100% { transform: scale(1.05) translate(0%, 0%); }
+        }
+      `}</style>
+
+      <div className="min-h-screen w-full flex bg-white font-sans text-sm">
+        
+        {/* --- LEFT SIDE: FlowBoard Branding & Abstract Workflow Image --- */}
+        <div className="hidden lg:flex lg:w-[50%] relative bg-slate-900 overflow-hidden">
+          <div className="absolute inset-0 bg-blue-900/40 mix-blend-multiply z-10 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#FFF8F8] via-slate-900/60 to-slate-900/20 z-20 pointer-events-none"></div>
+          
+          {/* Modern Abstract "Flow" Image suitable for a project management tool */}
+          <img 
+            src="https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000&auto=format&fit=crop" 
+            alt="Abstract Flow Graphic" 
+            className="absolute inset-0 w-full h-full object-cover animate-slow-pan z-0"
+          />
+          
+          <div className="absolute bottom-16 left-16 right-16 z-30 text-white">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-blue-600 p-2.5 rounded-lg shadow-lg relative overflow-hidden">
+                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                <Layout size={28} className="text-white relative z-10" strokeWidth={2.5} />
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight">FlowBoard</h2>
+            </div>
+            <h3 className="text-4xl font-extrabold mb-5 leading-tight tracking-tight">
+              Master your <br/>engineering workflow.
+            </h3>
+            <p className="text-slate-300 text-lg max-w-md leading-relaxed mb-8">
+              The enterprise-grade project management tool designed to keep your development, networking, and IT teams perfectly aligned.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Log in to FlowBoard</h1>
-          <p className="text-xs text-gray-500">
-            Manage projects, track issues, and collaborate with your team.
-          </p>
         </div>
 
-        {/* Error Alert Banner */}
-        {errorMessage && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
-            <AlertCircle size={16} className="shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-
-        {/* Login Form */}
-        <form onSubmit={handleLoginSubmit} className="space-y-4">
-          {/* Email or Username */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-700">Email or Username *</label>
-            <div className="relative flex items-center">
-              <Mail size={16} className="absolute left-3 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                required
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
-                value={loginInput}
-                onChange={(e) => setLoginInput(e.target.value)}
-                placeholder="name@company.com or username"
-              />
+        {/* --- RIGHT SIDE: Authentication Form --- */}
+        <div className="w-full lg:w-[50%] flex flex-col justify-center px-6 sm:px-16 md:px-24 xl:px-32 relative py-12 lg:py-0 overflow-y-auto">
+          
+          <div className="lg:hidden flex items-center gap-3 mb-10">
+            <div className="bg-blue-60text-white p-1 rounded-lg shadow-sm">
+              <Layout size={22} strokeWidth={2.5} />
             </div>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">FlowBoard</h1>
           </div>
 
-          {/* Password */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-gray-700">Password *</label>
-              <button
-                type="button"
-                onClick={() => {
-                  setForgotEmail(loginInput.includes('@') ? loginInput : '');
-                  setForgotSuccess('');
-                  setIsForgotModalOpen(true);
-                }}
-                className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer"
-              >
-                Forgot password?
+          <div className="w-full max-w-[420px] mx-auto">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
+              {isLoginMode ? 'Welcome back' : 'Create an account'}
+            </h2>
+            <p className="text-slate-500 mb-8 text-base">
+              {isLoginMode ? 'Enter your credentials to access the management portal.' : 'Register to access enterprise network management tools.'}
+            </p>
+
+            {errorMessage && (
+              <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700 flex items-start gap-2.5">
+                <AlertCircle size={18} className="shrink-0 mt-0.5 text-red-500" /><span>{errorMessage}</span>
+              </div>
+            )}
+
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              
+              {!isLoginMode && (
+                <div className="space-y-4">
+                  <FormInput label="Full Name" name="fullName" type="text" placeholder="John Doe" value={formData.fullName} onChange={handleChange} />
+                  <FormInput label="Username" name="username" type="text" placeholder="johndoe" value={formData.username} onChange={handleChange} />
+                </div>
+              )}
+
+              <FormInput label="Corporate Email" name="email" type="email" placeholder="john.doe@flowboard.com" value={formData.email} onChange={handleChange} />
+              
+              <FormInput 
+                label="Password" name="password" type="password" 
+                placeholder={isLoginMode ? "Enter password" : "Create a secure password"} 
+                value={formData.password} onChange={handleChange} 
+                isPassword showPassword={showPassword} togglePassword={() => setShowPassword(!showPassword)}
+              />
+
+              {!isLoginMode && (
+                <FormInput 
+                  label="Confirm Password" name="confirmPassword" type="password" 
+                  placeholder="Re-enter password" value={formData.confirmPassword} onChange={handleChange} 
+                  isPassword showPassword={showPassword} togglePassword={() => setShowPassword(!showPassword)}
+                />
+              )}
+
+              {isLoginMode && (
+                <div className="flex items-center justify-between pt-1 pb-1">
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer" />
+                    <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Remember me</span>
+                  </label>
+                  <a href="#" className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-bold transition-colors">Forgot password?</a>
+                </div>
+              )}
+
+              <button type="submit" disabled={isLoading} className="w-full h-11 mt-2 bg-white-600 hover:bg-blue-700 text-white font-bold rounded-md transition-all shadow-sm active:scale-[0.98] disabled:opacity-70 flex items-center justify-center">
+                {isLoading ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : (isLoginMode ? 'Log in' : 'Create Account')}
+              </button>
+            </form>
+
+            <div className="flex items-center gap-3 my-7">
+              <div className="flex-1 h-px bg-slate-200"></div><span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Or continue with SSO</span><div className="flex-1 h-px bg-slate-200"></div>
+            </div>
+
+            <div className="space-y-3">
+              <button type="button" onClick={loginWithGoogle} disabled={isLoading} className="w-full h-11 flex items-center justify-center gap-2.5 border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-md transition-all active:scale-[0.98] disabled:opacity-50">
+                <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#EEEBEB" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                Google
+              </button>
+
+              <button type="button" onClick={loginWithMicrosoft} disabled={isLoading} className="w-full h-11 flex items-center justify-center gap-2.5 border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-md transition-all active:scale-[0.98] disabled:opacity-50">
+                <svg className="w-5 h-5" viewBox="0 0 21 21"><path fill="#050201" d="M1 1h9v9H1z"/><path fill="#00a4ef" d="M1 11h9v9H1z"/><path fill="#7fba00" d="M11 1h9v9h-9z"/><path fill="#ffb900" d="M11 11h9v9h-9z"/></svg>
+                Microsoft
+              </button>
+
+              <button type="button" onClick={loginWithApple} disabled={isLoading} className="w-full h-11 flex items-center justify-center gap-2.5 border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-md transition-all active:scale-[0.98] disabled:opacity-50">
+                <svg className="w-[18px] h-[18px]" viewBox="0 0 384 512" fill="currentColor">
+                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+                </svg>
+                Apple
               </button>
             </div>
-            <div className="relative flex items-center">
-              <Lock size={16} className="absolute left-3 text-gray-400 pointer-events-none" />
-              <input
-                type="password"
-                required
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
+
+            <div className="mt-8 text-center bg-slate-50 p-4 rounded-lg border border-slate-100">
+              <span className="text-slate-500 font-medium">{isLoginMode ? "Don't have an account? " : "Already have an account? "}</span>
+              <button type="button" onClick={() => { setIsLoginMode(!isLoginMode); setErrorMessage(''); }} className="text-blue-600 hover:text-blue-800 font-bold transition-colors ml-1">
+                {isLoginMode ? "Sign up" : "Log in"}
+              </button>
             </div>
           </div>
-
-          {/* Remember Me Checkbox */}
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              type="checkbox"
-              id="rememberMe"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-            />
-            <label htmlFor="rememberMe" className="text-xs font-medium text-gray-700 cursor-pointer">
-              Remember me on this device
-            </label>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-lg font-semibold text-sm transition-colors cursor-pointer shadow-xs mt-2"
-          >
-            <span>{loading ? 'Logging in...' : 'Log In'}</span>
-            <ArrowRight size={16} />
-          </button>
-        </form>
-
-        <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-100 space-y-3">
-          <div>
-            Don't have an account?{' '}
-            <Link to="/register" className="text-blue-600 font-semibold hover:underline">
-              Sign up
-            </Link>
-          </div>
-
-          {/* Admin Portal Gateway Link */}
-          <div className="pt-2 border-t border-gray-100">
-            <Link
-              to="/admin/login"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold text-xs shadow-xs transition-colors"
-            >
-              <span>🔒 Admin Console Login</span>
-              <ArrowRight size={13} />
-            </Link>
-          </div>
+          
+          <div className="lg:hidden mt-12 text-center text-xs text-slate-400">© {new Date().getFullYear()} IE Network Solutions</div>
         </div>
       </div>
-
-      {/* Forgot Password Modal */}
-      {isForgotModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="font-bold text-gray-900 text-base">Reset Password</h3>
-              <button
-                onClick={() => setIsForgotModalOpen(false)}
-                className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {forgotSuccess ? (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 space-y-2">
-                <div className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 size={16} className="text-emerald-600" />
-                  <span>Request Received</span>
-                </div>
-                <p>{forgotSuccess}</p>
-                <button
-                  onClick={() => setIsForgotModalOpen(false)}
-                  className="w-full py-1.5 mt-2 bg-emerald-600 text-white rounded font-semibold text-xs cursor-pointer"
-                >
-                  Return to Login
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotSubmit} className="space-y-4">
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  Enter your account email address and we will send you a password reset link.
-                </p>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@company.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-blue-600"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsForgotModalOpen(false)}
-                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-100 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 cursor-pointer"
-                  >
-                    Send Reset Link
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
-};
-
-export default Login;
+}

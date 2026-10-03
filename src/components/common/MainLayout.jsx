@@ -20,7 +20,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5F7FA] font-sans text-[#0F172A]">
+    <div className="min-h-screen flex flex-col bg-[rgba(220, 236, 251, 0.87)] font-sans text-[#0A0A0B]">
 
       {/* Top Navigation */}
       <Navbar
@@ -40,7 +40,7 @@ const MainLayout = () => {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-y-auto">
+        <div className="flex-1 flex flex-col min-w-0 bg-[rgb(1, 14, 20)] overflow-y-auto">
 
           <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto box-border">
             <Outlet />

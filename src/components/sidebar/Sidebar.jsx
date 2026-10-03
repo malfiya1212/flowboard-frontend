@@ -35,7 +35,7 @@ const navGroups = [
         path: '/issues',
         label: 'My Work',
         icon: CheckSquare,
-        badge: '8',
+        badge: '0',
       },
     ],
   },
@@ -103,12 +103,12 @@ const Sidebar = ({
           flex flex-col
           z-50
 
-          bg-[#111827]
+          bg-[rgb(241, 243, 247)]
           text-white
 
           transition-all duration-300 ease-in-out
 
-          ${isCollapsed ? 'w-[76px]' : 'w-[250px]'}
+          ${isCollapsed ? 'w-[66px]' : 'w-[250px]'}
 
           ${
             isMobileOpen

@@ -1,11 +1,4 @@
 @import "tailwindcss";
-
-/* =========================================================
-   FLOWBOARD DESIGN SYSTEM
-   Jira-inspired professional UI
-   Tailwind CSS v4
-   ========================================================= */
-
 @theme {
     --color-primary: #0c66e4;
     --color-primary-hover: #0055b8;
@@ -29,28 +22,24 @@
     --color-info-light: #e6fcff;
 }
 
-
-/* =========================================================
-   BASE
-   ========================================================= */
-
 @layer base {
     * {
         box-sizing: border-box;
     }
-    html {
-        margin: 0;
-        padding: 0;
-        background-color: #f4f5f7;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    }
-    body {
+    html,
+    body,
+    #root {
         margin: 0;
         min-width: 320px;
         min-height: 100vh;
-        background-color: #f4f5f7;
-        color: #172b4d;
+    }
+    html,
+    body {
+        background: var(--color-bg-main);
+        color: var(--color-text-main);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    }
+    body {
         font-size: 14px;
         line-height: 1.5;
         -webkit-font-smoothing: antialiased;
@@ -69,15 +58,7 @@
         color: inherit;
         text-decoration: none;
     }
-    #root {
-        min-height: 100vh;
-    }
 }
-
-
-/* =========================================================
-   SCROLLBAR
-   ========================================================= */
 
 ::-webkit-scrollbar {
     width: 7px;
@@ -97,83 +78,76 @@
     background: #a5adba;
 }
 
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
 @layer components {
     .btn {
         @apply inline-flex items-center justify-center gap-2 rounded-[3px] px-3 py-1.5 text-sm font-medium transition-colors;
     }
     .btn-primary {
-        @apply bg-primary text-white;
+        background-color: var(--color-primary);
+        color: white;
     }
     .btn-primary:hover {
-        @apply bg-primary-hover;
+        background-color: var(--color-primary-hover);
     }
     .btn-secondary {
-        @apply border border-border bg-white text-text-main;
+        @apply border bg-white;
+        border-color: var(--color-border);
+        color: var(--color-text-main);
     }
     .btn-secondary:hover {
-        @apply bg-bg-hover;
+        background-color: var(--color-bg-hover);
     }
     .btn-ghost {
-        @apply bg-transparent text-text-secondary;
+        @apply bg-transparent;
+        color: var(--color-text-secondary);
     }
     .btn-ghost:hover {
-        @apply bg-bg-hover text-text-main;
+        background-color: var(--color-bg-hover);
+        color: var(--color-text-main);
     }
     .btn-danger {
-        @apply bg-danger text-white;
+        background-color: var(--color-danger);
+        color: white;
     }
     .btn-danger:hover {
         @apply bg-red-700;
     }
     .btn-icon {
-        @apply inline-flex items-center justify-center rounded-[3px] p-1.5 text-text-secondary transition-colors;
+        @apply inline-flex items-center justify-center rounded-[3px] p-1.5 transition-colors;
+        color: var(--color-text-secondary);
     }
     .btn-icon:hover {
-        @apply bg-bg-hover text-text-main;
+        background-color: var(--color-bg-hover);
+        color: var(--color-text-main);
     }
-}
-
-
-/* =========================================================
-   FORM ELEMENTS
-   ========================================================= */
-
-@layer components {
     .input {
-        @apply w-full rounded-[3px] border border-border bg-white px-3 py-2 text-sm text-text-main outline-none transition-colors;
+        @apply w-full rounded-[3px] border bg-white px-3 py-2 text-sm outline-none transition-colors;
+        border-color: var(--color-border);
+        color: var(--color-text-main);
     }
     .input::placeholder {
-        color: #8993a4;
+        color: var(--color-text-muted);
     }
     .input:focus {
-        border-color: #0c66e4;
-        box-shadow: 0 0 0 1px #0c66e4;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 1px var(--color-primary);
     }
     .select {
-        @apply rounded-[3px] border border-border bg-white px-3 py-2 text-sm text-text-main outline-none;
+        @apply rounded-[3px] border bg-white px-3 py-2 text-sm outline-none;
+        border-color: var(--color-border);
+        color: var(--color-text-main);
     }
     .select:focus {
-        border-color: #0c66e4;
-        box-shadow: 0 0 0 1px #0c66e4;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 1px var(--color-primary);
     }
-}
-
-
-/* =========================================================
-   CARDS
-   ========================================================= */
-
-@layer components {
     .surface {
-        @apply border border-border-light bg-white;
+        @apply border bg-white;
+        border-color: var(--color-border-light);
     }
     .card {
-        @apply rounded-[6px] border border-border-light bg-white;
+        @apply rounded-[6px] border bg-white;
+        border-color: var(--color-border-light);
     }
     .card-hover {
         @apply transition-shadow;
@@ -181,154 +155,123 @@
     .card-hover:hover {
         @apply shadow-sm;
     }
-}
-
-
-/* =========================================================
-   SIDEBAR
-   ========================================================= */
-
-@layer components {
     .sidebar {
-        @apply border-r border-border-light bg-white;
+        @apply border-r bg-white;
+        border-color: var(--color-border-light);
     }
     .sidebar-item {
-        @apply flex min-h-9 items-center gap-3 rounded-[3px] px-3 text-sm font-medium text-text-secondary transition-colors;
+        @apply flex min-h-9 items-center gap-3 rounded-[3px] px-3 text-sm font-medium transition-colors;
+        color: var(--color-text-secondary);
     }
     .sidebar-item:hover {
-        @apply bg-bg-hover text-text-main;
+        background-color: var(--color-bg-hover);
+        color: var(--color-text-main);
     }
     .sidebar-item.active {
-        @apply bg-primary-light text-primary;
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
     }
-}
-
-
-/* =========================================================
-   PROJECT NAVIGATION
-   ========================================================= */
-
-@layer components {
     .project-nav-item {
-        @apply flex items-center gap-2 rounded-[3px] px-3 py-2 text-sm font-medium text-text-secondary transition-colors;
+        @apply flex items-center gap-2 rounded-[3px] px-3 py-2 text-sm font-medium transition-colors;
+        color: var(--color-text-secondary);
     }
     .project-nav-item:hover {
-        @apply bg-bg-hover text-text-main;
+        background-color: var(--color-bg-hover);
+        color: var(--color-text-main);
     }
     .project-nav-item.active {
-        @apply bg-primary-light text-primary;
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
     }
-}
-
-
-/* =========================================================
-   SCRUM / KANBAN BOARD
-   ========================================================= */
-
-@layer components {
     .board {
         @apply flex gap-3 overflow-x-auto pb-4;
     }
     .board-column {
-        @apply flex min-w-[280px] max-w-[320px] flex-1 flex-col rounded-[6px] bg-[#ebecf0] p-2;
+        @apply flex min-w-[280px] max-w-[320px] flex-1 flex-col rounded-[6px] p-2;
+        background-color: #ebecf0;
     }
     .board-column-header {
-        @apply flex items-center justify-between px-2 py-2 text-xs font-semibold uppercase tracking-wide text-text-secondary;
+        @apply flex items-center justify-between px-2 py-2 text-xs font-semibold uppercase tracking-wide;
+        color: var(--color-text-secondary);
     }
     .issue-card {
-        @apply mb-2 rounded-[4px] border border-border-light bg-white p-3 shadow-none transition-shadow;
+        @apply mb-2 rounded-[4px] border bg-white p-3 shadow-none transition-shadow;
+        border-color: var(--color-border-light);
     }
     .issue-card:hover {
         border-color: #b3bac5;
         box-shadow: 0 1px 3px rgb(9 30 66 / 15%);
     }
-}
-
-
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-@layer components {
     .status-todo {
-        @apply bg-bg-hover text-text-secondary;
+        background-color: var(--color-bg-hover);
+        color: var(--color-text-secondary);
     }
     .status-progress {
-        @apply bg-primary-light text-primary;
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
     }
     .status-review {
-        @apply bg-warning-light text-[#974f0c];
+        background-color: var(--color-warning-light);
+        color: #974f0c;
     }
     .status-done {
-        @apply bg-success-light text-[#006644];
+        background-color: var(--color-success-light);
+        color: #006644;
     }
     .priority-high {
-        @apply text-danger;
+        color: var(--color-danger);
     }
     .priority-medium {
-        @apply text-warning;
+        color: var(--color-warning);
     }
     .priority-low {
-        @apply text-success;
+        color: var(--color-success);
     }
-}
-
-
-/* =========================================================
-   BADGES
-   ========================================================= */
-
-@layer components {
     .badge {
         @apply inline-flex items-center rounded-[3px] px-2 py-0.5 text-xs font-semibold;
     }
     .badge-blue {
-        @apply bg-primary-light text-primary;
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
     }
     .badge-green {
-        @apply bg-success-light text-[#006644];
+        background-color: var(--color-success-light);
+        color: #006644;
     }
     .badge-yellow {
-        @apply bg-warning-light text-[#974f0c];
+        background-color: var(--color-warning-light);
+        color: #974f0c;
     }
     .badge-red {
-        @apply bg-danger-light text-danger;
+        background-color: var(--color-danger-light);
+        color: var(--color-danger);
     }
     .badge-gray {
-        @apply bg-bg-hover text-text-secondary;
+        background-color: var(--color-bg-hover);
+        color: var(--color-text-secondary);
     }
-}
-
-
-/* =========================================================
-   TABLE
-   ========================================================= */
-
-@layer components {
     .table {
         @apply w-full border-collapse;
     }
     .table th {
-        @apply border-b border-border bg-bg-subtle px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary;
+        @apply border-b px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide;
+        border-color: var(--color-border);
+        background-color: var(--color-bg-subtle);
+        color: var(--color-text-secondary);
     }
     .table td {
-        @apply border-b border-border-light px-4 py-3 text-sm text-text-main;
+        @apply border-b px-4 py-3 text-sm;
+        border-color: var(--color-border-light);
+        color: var(--color-text-main);
     }
     .table tbody tr:hover {
-        @apply bg-bg-subtle;
+        background-color: var(--color-bg-subtle);
     }
-}
-
-
-/* =========================================================
-   MODAL
-   ========================================================= */
-
-@layer components {
     .modal-overlay {
         @apply fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4;
     }
     .modal {
-        @apply w-full max-w-lg rounded-[6px] border border-border bg-white shadow-xl;
+        @apply w-full max-w-lg rounded-[6px] border bg-white shadow-xl;
+        border-color: var(--color-border);
     }
 }

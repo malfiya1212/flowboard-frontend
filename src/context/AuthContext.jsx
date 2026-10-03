@@ -5,8 +5,8 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState({
     id: '1',
-    name: 'John Doe',
-    email: 'john.doe@flowboard.dev',
+    name: 'malefiya',
+    email: 'm28947105@gmail.com',
     role: 'Admin'
   });
 
