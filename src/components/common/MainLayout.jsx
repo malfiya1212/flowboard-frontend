@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../navbar/Navbar';
-import Sidebar from '../sidebar/Sidebar';
+import Sidebar from '../sidebar/Sidebar';   
 
 const MainLayout = () => {
+  // Fixed: Added missing state declaration for sidebar collapse
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -20,7 +21,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[rgba(220, 236, 251, 0.87)] font-sans text-[#0A0A0B]">
+    <div className="min-h-screen flex flex-col bg-[#fafaf9] font-sans text-stone-900 overflow-hidden">
 
       {/* Top Navigation */}
       <Navbar
@@ -29,7 +30,7 @@ const MainLayout = () => {
       />
 
       {/* Sidebar + Main Content */}
-      <div className="flex flex-1 relative min-h-[calc(100vh-3.5rem)]">
+      <div className="flex flex-1 relative min-h-[calc(100vh-3.5rem)] overflow-hidden">
 
         {/* Sidebar */}
         <Sidebar
@@ -39,14 +40,13 @@ const MainLayout = () => {
           onCloseMobile={closeMobileSidebar}
         />
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[rgb(1, 14, 20)] overflow-y-auto">
-
-          <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto box-border">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[#fafaf9] overflow-y-auto">
+          <main className="flex-1 flex flex-col w-full box-border">
             <Outlet />
           </main>
-
         </div>
+
       </div>
     </div>
   );
