@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, Search, Plus, Kanban } from 'lucide-react';
 import NotificationsMenu from './notifications/NotificationsMenu';
 import UserMenu from './UserMenu';
+import Breadcrumbs from '../common/Breadcrumbs';
+import Tooltip from '../common/Tooltip';
 
 const searchableIssues = [
   { key: 'FLW-25', title: 'Login authentication failure on Safari', type: 'Bug', status: 'OPEN' },
@@ -81,7 +83,7 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
 
   return (
     <header className="sticky top-0 z-50 h-14 bg-white border-b border-stone-200 flex items-center justify-between px-4 shadow-sm">
-      {/* Brand & Mobile Menu */}
+      {/* Left: Mobile Toggle, Site Logo, & Breadcrumbs */}
       <div className="flex items-center gap-4 min-w-0">
         <button
           type="button"
@@ -100,9 +102,13 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
             FlowBoard
           </span>
         </Link>
+
+        {/* Subtle Divider & Breadcrumbs */}
+        <div className="hidden lg:block h-4 w-px bg-stone-200" />
+        <Breadcrumbs />
       </div>
 
-      {/* Debounced Global Search */}
+      {/* Center: Global Search Input with Debounce */}
       <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-xl mx-6 relative">
         <div className="relative w-full flex items-center">
           <Search size={16} className="absolute left-3 text-stone-400 pointer-events-none" />
@@ -117,11 +123,14 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
             placeholder="Search issues..."
             className="w-full pl-9 pr-16 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all"
           />
-          <span className="absolute right-2.5 text-[10px] font-medium text-stone-400 bg-white border border-stone-200 rounded px-1.5 py-0.5 pointer-events-none">
-            Ctrl K
-          </span>
+          <Tooltip content="Quick search">
+            <span className="absolute right-2.5 text-[10px] font-medium text-stone-400 bg-white border border-stone-200 rounded px-1.5 py-0.5 pointer-events-none">
+              Ctrl K
+            </span>
+          </Tooltip>
         </div>
 
+        {/* Search Results Dropdown */}
         {isSearchOpen && debouncedQuery.trim() && (
           <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-xl shadow-xl p-2 z-50">
             <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-3 py-2">
@@ -167,16 +176,18 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
         )}
       </div>
 
-      {/* Right Actions: Create button + Extracted Menus */}
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => navigate('/issues?create=true')}
-          className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg font-semibold text-sm transition-all shadow-sm cursor-pointer"
-        >
-          <Plus size={16} strokeWidth={2.5} />
-          <span className="hidden sm:inline">Create</span>
-        </button>
+      {/* Right: Actions, Notifications, & User Dropdown */}
+      <div className="flex items-center gap-2">
+        <Tooltip content="Create new issue">
+          <button
+            type="button"
+            onClick={() => navigate('/issues?create=true')}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg font-semibold text-sm transition-all shadow-sm cursor-pointer"
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span className="hidden sm:inline">Create</span>
+          </button>
+        </Tooltip>
 
         <NotificationsMenu />
         <UserMenu />
