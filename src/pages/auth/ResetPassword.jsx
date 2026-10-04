@@ -1,9 +1,73 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Kanban, Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
-import PasswordStrengthMeter from '../../components/common/PasswordStrengthMeter';
-import { validatePassword } from '../../utils/passwordValidation';
+import { Kanban, Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, Check, X } from 'lucide-react';
 
+// --- INLINE VALIDATOR ---
+const validatePassword = (password) => {
+  const rules = {
+    minLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[^A-Za-z0-9]/.test(password),
+  };
+
+  const passedCount = Object.values(rules).filter(Boolean).length;
+  let strength = 'Weak';
+  if (passedCount >= 4) strength = 'Strong';
+  else if (passedCount >= 2) strength = 'Medium';
+
+  return {
+    rules,
+    strength,
+    isValid: rules.minLength && rules.hasNumber && (rules.hasUppercase || rules.hasSpecial),
+  };
+};
+
+// --- INLINE STRENGTH METER ---
+function PasswordStrengthMeter({ password }) {
+  if (!password) return null;
+  const { rules, strength } = validatePassword(password);
+
+  const criteria = [
+    { label: 'At least 8 characters', met: rules.minLength },
+    { label: 'One uppercase letter', met: rules.hasUppercase },
+    { label: 'One number', met: rules.hasNumber },
+    { label: 'One special character', met: rules.hasSpecial },
+  ];
+
+  const activeBars = strength === 'Strong' ? 3 : strength === 'Medium' ? 2 : 1;
+
+  return (
+    <div className="space-y-2 pt-1">
+      <div className="flex justify-between items-center text-[10px] font-bold text-stone-500 uppercase tracking-wider">
+        <span>Password Strength</span>
+        <span className="text-stone-800">{strength}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-1.5 h-1.5">
+        <div className={`rounded-full transition-all ${activeBars >= 1 ? 'bg-stone-400' : 'bg-stone-200'}`} />
+        <div className={`rounded-full transition-all ${activeBars >= 2 ? 'bg-indigo-400' : 'bg-stone-200'}`} />
+        <div className={`rounded-full transition-all ${activeBars >= 3 ? 'bg-indigo-600' : 'bg-stone-200'}`} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-1 text-[11px] text-stone-500 pt-1">
+        {criteria.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-1.5">
+            {item.met ? (
+              <Check size={12} className="text-indigo-600 shrink-0" strokeWidth={3} />
+            ) : (
+              <X size={12} className="text-stone-300 shrink-0" strokeWidth={2} />
+            )}
+            <span className={item.met ? 'text-stone-800 font-medium' : 'text-stone-400'}>
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- MAIN RESET PASSWORD PAGE ---
 export default function ResetPassword() {
   const navigate = useNavigate();
 
@@ -41,7 +105,6 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-stone-50/50 flex items-center justify-center p-4 font-sans text-stone-900 antialiased">
       <div className="w-full max-w-[420px] bg-white border border-stone-200/80 rounded-2xl p-8 shadow-xs">
-        
         {/* Brand Header */}
         <div className="flex items-center gap-2.5 mb-6">
           <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-xs">
@@ -64,7 +127,7 @@ export default function ResetPassword() {
                 Set new password
               </h1>
               <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                Must be at least 8 characters and include both numbers and special characters.
+                Must be at least 8 characters and include numbers and special characters.
               </p>
             </div>
 
@@ -163,7 +226,6 @@ export default function ResetPassword() {
             </button>
           </div>
         )}
-
       </div>
     </div>
   );
