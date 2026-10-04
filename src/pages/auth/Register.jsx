@@ -1,66 +1,50 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Kanban,
-  User,
-  Mail,
-  Lock,
-  Briefcase,
   Eye,
   EyeOff,
-  ArrowRight,
   CheckCircle2,
   AlertCircle,
   RotateCw,
+  ArrowRight,
 } from 'lucide-react';
-
-const PROFILE_ROLES = [
-  'Software Engineer',
-  'Product Manager',
-  'Frontend Developer',
-  'Backend Developer',
-  'UI/UX Designer',
-  'QA / Test Engineer',
-];
 
 export default function Register() {
   const navigate = useNavigate();
 
-  // Step progression: 'register' -> 'verify' -> 'activated'
+  // Multi-step flow: 'register' -> 'verify' -> 'activated'
   const [step, setStep] = useState('register');
 
-  // Form Fields
+  // Registration Form State matching your UI layout
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
+    username: '',
     email: '',
-    profileRole: 'Software Engineer',
     password: '',
     confirmPassword: '',
   });
 
-  // UI States
+  // UI state toggles
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Verification OTP States (6-digit array)
+  // Email Verification (6-Digit OTP) State
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
-  const otpInputRefs = useRef([]);
+  const otpRefs = useRef([]);
 
-  // Countdown timer for email resend
+  // Resend OTP countdown
   useEffect(() => {
-    let interval;
+    let timer;
     if (step === 'verify' && resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
-      }, 1000);
+      timer = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
     } else if (resendTimer === 0) {
       setCanResend(true);
     }
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, [step, resendTimer]);
 
   const handleChange = (e) => {
@@ -71,18 +55,23 @@ export default function Register() {
     setErrorMessage('');
   };
 
-  // STEP 1: Form Validation & Submit
+  // 1. Submit Registration Form
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
     setErrorMessage('');
 
-    if (!formData.name.trim()) {
+    if (!formData.fullName.trim()) {
       setErrorMessage('Please enter your full name.');
       return;
     }
 
+    if (!formData.username.trim()) {
+      setErrorMessage('Please choose a username.');
+      return;
+    }
+
     if (!formData.email.trim() || !formData.email.includes('@')) {
-      setErrorMessage('Please enter a valid work email address.');
+      setErrorMessage('Please enter a valid corporate email.');
       return;
     }
 
@@ -92,57 +81,55 @@ export default function Register() {
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage('Passwords do not match. Please re-enter.');
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
     setLoading(true);
 
-    // Simulate sending activation email with verification token
+    // Advance to Email Verification step
     setTimeout(() => {
       setLoading(false);
       setStep('verify');
       setResendTimer(30);
       setCanResend(false);
-    }, 600);
+    }, 500);
   };
 
-  // OTP Input Handlers
+  // 2. OTP Input Handler
   const handleOtpChange = (index, value) => {
     if (isNaN(value)) return;
-
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
-    // Auto-advance to next box
     if (value && index < 5) {
-      otpInputRefs.current[index + 1]?.focus();
+      otpRefs.current[index + 1]?.focus();
     }
   };
 
   const handleOtpKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpInputRefs.current[index - 1]?.focus();
+      otpRefs.current[index - 1]?.focus();
     }
   };
 
-  const handleResendCode = () => {
+  const handleResendOtp = () => {
     if (!canResend) return;
     setOtp(['', '', '', '', '', '']);
     setResendTimer(30);
     setCanResend(false);
     setErrorMessage('');
-    otpInputRefs.current[0]?.focus();
+    otpRefs.current[0]?.focus();
   };
 
-  // STEP 2: Verify & Activate Account
+  // 3. Verify Code and Activate Account
   const handleVerifySubmit = (e) => {
     e.preventDefault();
-    const verificationCode = otp.join('');
+    const code = otp.join('');
 
-    if (verificationCode.length !== 6) {
-      setErrorMessage('Please enter the complete 6-digit activation code.');
+    if (code.length !== 6) {
+      setErrorMessage('Please enter all 6 digits of your activation code.');
       return;
     }
 
@@ -151,148 +138,114 @@ export default function Register() {
     setTimeout(() => {
       setLoading(false);
 
-      // Persist activated user session into storage
-      const newUser = {
-        name: formData.name.trim(),
+      // Persist activated user into localStorage
+      const user = {
+        name: formData.fullName.trim(),
+        username: formData.username.trim().toLowerCase(),
         email: formData.email.trim().toLowerCase(),
-        role: formData.profileRole,
-        accountStatus: 'Activated',
-        joinedAt: new Date().toISOString(),
+        role: 'Software Developer',
+        status: 'Active',
       };
 
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('flowboard_role', 'Member');
-      localStorage.setItem('flowboard_user', JSON.stringify(newUser));
-      localStorage.setItem('token', `usr-jwt-${Date.now()}`);
+      localStorage.setItem('flowboard_user', JSON.stringify(user));
+      localStorage.setItem('token', `usr-token-${Date.now()}`);
 
       setStep('activated');
-    }, 700);
+    }, 600);
   };
 
   return (
-    <div className="min-h-screen bg-stone-100/60 flex items-center justify-center p-4 font-sans text-stone-900 antialiased">
-      <div className="w-full max-w-[480px]">
+    <div className="min-h-screen bg-stone-50/50 flex items-center justify-center p-4 font-sans text-stone-900 antialiased">
+      <div className="w-full max-w-[420px] bg-white border border-stone-200/80 rounded-2xl p-8 shadow-xs">
         
-        {/* BRAND HEADER */}
-        <div className="flex flex-col items-center mb-6 text-center">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-sm">
-              <Kanban size={20} strokeWidth={2.2} />
+        {/* =========================================================================
+            STEP 1: REGISTRATION FORM (Matches your exact UI layout)
+           ========================================================================= */}
+        {step === 'register' && (
+          <div>
+            {/* Header */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+                Create an account
+              </h1>
+              <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
+                Register to access enterprise project management tools.
+              </p>
             </div>
-            <div className="text-left">
-              <span className="font-bold text-xl text-stone-900 tracking-tight leading-none block">
-                FlowBoard
-              </span>
-              <span className="text-[10px] text-stone-400 font-medium tracking-wide">
-                Agile Project Management
-              </span>
-            </div>
-          </div>
 
-          <h1 className="text-xl font-bold text-stone-900 tracking-tight">
-            {step === 'register' && 'Create Your FlowBoard Account'}
-            {step === 'verify' && 'Verify Your Email Address'}
-            {step === 'activated' && 'Account Activated!'}
-          </h1>
-          <p className="text-stone-500 text-xs mt-1 max-w-[340px]">
-            {step === 'register' && 'Join your team to plan sprints, track backlogs, and deliver work.'}
-            {step === 'verify' && `We sent a 6-digit activation code to ${formData.email}`}
-            {step === 'activated' && 'Your profile has been verified and your workspace is ready.'}
-          </p>
-        </div>
+            {/* Error Message */}
+            {errorMessage && (
+              <div className="mb-4 p-2.5 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-xs text-red-700">
+                <AlertCircle size={14} className="shrink-0 text-red-600" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
-        {/* MAIN CONTAINER CARD */}
-        <div className="bg-white border border-stone-200 rounded-2xl p-7 shadow-sm space-y-4">
-          
-          {/* Error Banner */}
-          {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700 text-xs">
-              <AlertCircle size={15} className="shrink-0 text-red-600" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          {/* =========================================================================
-              PHASE 1: REGISTRATION FORM
-             ========================================================================= */}
-          {step === 'register' && (
-            <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-              
-              {/* Full Name */}
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider">
-                  Full Name *
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              {/* FULL NAME */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+                  Full Name
                 </label>
-                <div className="relative flex items-center">
-                  <User size={15} className="absolute left-3 text-stone-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="e.g. Malefiya Abebaw"
-                    className="w-full h-10 pl-9 pr-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="fullName"
+                  required
+                  placeholder="John Doe"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="w-full h-10 px-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
+                />
               </div>
 
-              {/* Work Email */}
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider">
-                  Work Email Address *
+              {/* USERNAME */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+                  Username
                 </label>
-                <div className="relative flex items-center">
-                  <Mail size={15} className="absolute left-3 text-stone-400 pointer-events-none" />
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="name@company.com"
-                    className="w-full h-10 pl-9 pr-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="username"
+                  required
+                  placeholder="johndoe"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full h-10 px-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
+                />
               </div>
 
-              {/* Profile / Job Role */}
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider">
-                  Profile Role & Specialty *
+              {/* CORPORATE EMAIL */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+                  Corporate Email
                 </label>
-                <div className="relative flex items-center">
-                  <Briefcase size={15} className="absolute left-3 text-stone-400 pointer-events-none" />
-                  <select
-                    name="profileRole"
-                    value={formData.profileRole}
-                    onChange={handleChange}
-                    className="w-full h-10 pl-9 pr-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs cursor-pointer"
-                  >
-                    {PROFILE_ROLES.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="john.doe@flowboard.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full h-10 px-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
+                />
               </div>
 
-              {/* Password */}
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider">
-                  Password *
+              {/* PASSWORD */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+                  Password
                 </label>
                 <div className="relative flex items-center">
-                  <Lock size={15} className="absolute left-3 text-stone-400 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     required
+                    placeholder="••••••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Minimum 8 characters"
-                    className="w-full h-10 pl-9 pr-10 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
+                    className="w-full h-10 pl-3 pr-10 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
                   />
                   <button
                     type="button"
@@ -305,21 +258,20 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Confirm Password */}
-              <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider">
-                  Confirm Password *
+              {/* CONFIRM PASSWORD */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+                  Confirm Password
                 </label>
                 <div className="relative flex items-center">
-                  <Lock size={15} className="absolute left-3 text-stone-400 pointer-events-none" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     required
+                    placeholder="Re-enter password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    placeholder="Repeat your password"
-                    className="w-full h-10 pl-9 pr-10 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
+                    className="w-full h-10 pl-3 pr-10 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
                   />
                   <button
                     type="button"
@@ -332,138 +284,191 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* CREATE ACCOUNT BUTTON */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer mt-2"
+                className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white font-semibold text-xs rounded-lg transition-colors shadow-xs cursor-pointer mt-2"
               >
-                <span>{loading ? 'Processing...' : 'Register & Verify Email'}</span>
-                <ArrowRight size={14} />
+                {loading ? 'Creating Account...' : 'Create Account'}
               </button>
             </form>
-          )}
 
-          {/* =========================================================================
-              PHASE 2: EMAIL VERIFICATION (6-DIGIT CODE)
-             ========================================================================= */}
-          {step === 'verify' && (
-            <form onSubmit={handleVerifySubmit} className="space-y-5">
-              <div className="text-center space-y-1">
-                <span className="text-xs text-stone-600 font-medium">
-                  Enter the 6-digit code sent to:
+            {/* OR CONTINUE WITH SSO DIVIDER */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-stone-200" />
+              </div>
+              <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-wider">
+                <span className="bg-white px-3 text-stone-400">
+                  Or continue with SSO
                 </span>
-                <div className="font-mono text-xs font-bold text-stone-900 bg-stone-50 border border-stone-200 py-1.5 px-3 rounded-lg inline-block">
-                  {formData.email}
-                </div>
               </div>
+            </div>
 
-              {/* 6 Digit Inputs */}
-              <div className="flex justify-center gap-2">
-                {otp.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    ref={(el) => (otpInputRefs.current[idx] = el)}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    className="w-11 h-12 text-center text-lg font-bold font-mono bg-stone-50 border border-stone-200 rounded-lg text-stone-900 focus:bg-white focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
-                  />
-                ))}
-              </div>
-
-              {/* Submit Activation */}
+            {/* SSO BUTTONS */}
+            <div className="space-y-2.5">
+              {/* Google */}
               <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                type="button"
+                onClick={() => alert('Redirecting to Google Enterprise OAuth...')}
+                className="w-full h-10 bg-white hover:bg-stone-50 border border-stone-200 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold text-stone-700 transition-colors shadow-xs cursor-pointer"
               >
-                <span>{loading ? 'Activating Account...' : 'Verify & Activate Account'}</span>
-                <CheckCircle2 size={15} />
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>Google</span>
               </button>
 
-              {/* Resend Code Options */}
-              <div className="flex items-center justify-between text-xs pt-1">
-                <button
-                  type="button"
-                  onClick={() => setStep('register')}
-                  className="text-stone-500 hover:text-stone-900 cursor-pointer"
+              {/* Microsoft */}
+              <button
+                type="button"
+                onClick={() => alert('Redirecting to Microsoft Azure AD...')}
+                className="w-full h-10 bg-white hover:bg-stone-50 border border-stone-200 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold text-stone-700 transition-colors shadow-xs cursor-pointer"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 23 23">
+                  <path fill="#f35325" d="M1 1h10v10H1z" />
+                  <path fill="#81bc06" d="M12 1h10v10H12z" />
+                  <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                  <path fill="#ffba08" d="M12 12h10v10H12z" />
+                </svg>
+                <span>Microsoft</span>
+              </button>
+            </div>
+
+            {/* Login Link */}
+            <div className="text-center mt-6">
+              <p className="text-xs text-stone-500">
+                Already registered?{' '}
+                <Link
+                  to="/login"
+                  className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline"
                 >
-                  Edit Email Address
-                </button>
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
+        )}
 
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={!canResend}
-                  className={`flex items-center gap-1.5 font-semibold cursor-pointer ${
-                    canResend
-                      ? 'text-indigo-600 hover:underline'
-                      : 'text-stone-400 cursor-not-allowed'
-                  }`}
-                >
-                  <RotateCw size={12} className={!canResend ? 'animate-spin' : ''} />
-                  <span>{canResend ? 'Resend Code' : `Resend in ${resendTimer}s`}</span>
-                </button>
+        {/* =========================================================================
+            STEP 2: EMAIL VERIFICATION (OTP Verification)
+           ========================================================================= */}
+        {step === 'verify' && (
+          <form onSubmit={handleVerifySubmit} className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-stone-900">
+                Verify your email
+              </h2>
+              <p className="text-xs text-stone-500 mt-1">
+                Enter the 6-digit code sent to:
+              </p>
+              <div className="font-mono text-xs font-bold text-stone-800 bg-stone-50 border border-stone-200/80 px-2.5 py-1 rounded-md inline-block mt-1.5">
+                {formData.email}
               </div>
-            </form>
-          )}
+            </div>
 
-          {/* =========================================================================
-              PHASE 3: ACCOUNT ACTIVATION CONFIRMATION
-             ========================================================================= */}
-          {step === 'activated' && (
-            <div className="py-4 text-center space-y-4">
-              <div className="w-12 h-12 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
-                <CheckCircle2 size={24} />
+            {errorMessage && (
+              <div className="p-2.5 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-xs text-red-700">
+                <AlertCircle size={14} className="shrink-0 text-red-600" />
+                <span>{errorMessage}</span>
               </div>
+            )}
 
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-stone-900">
-                  Welcome to FlowBoard, {formData.name}!
-                </h3>
-                <p className="text-xs text-stone-500 max-w-xs mx-auto">
-                  Your email has been verified and your profile has been provisioned as{' '}
-                  <span className="font-semibold text-stone-800">{formData.profileRole}</span>.
-                </p>
-              </div>
+            {/* 6 Digit Inputs */}
+            <div className="flex justify-between gap-1.5">
+              {otp.map((val, idx) => (
+                <input
+                  key={idx}
+                  ref={(el) => (otpRefs.current[idx] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={val}
+                  onChange={(e) => handleOtpChange(idx, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  className="w-11 h-12 text-center text-lg font-bold font-mono bg-white border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all shadow-xs"
+                />
+              ))}
+            </div>
+
+            {/* Verify & Activate Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white font-semibold text-xs rounded-lg transition-colors shadow-xs cursor-pointer"
+            >
+              {loading ? 'Activating Account...' : 'Verify & Activate Account'}
+            </button>
+
+            {/* Resend actions */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <button
+                type="button"
+                onClick={() => setStep('register')}
+                className="text-stone-500 hover:text-stone-800 cursor-pointer"
+              >
+                ← Back
+              </button>
 
               <button
                 type="button"
-                onClick={() => navigate('/choose-method', { replace: true })}
-                className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                onClick={handleResendOtp}
+                disabled={!canResend}
+                className={`flex items-center gap-1.5 font-semibold cursor-pointer ${
+                  canResend
+                    ? 'text-indigo-600 hover:underline'
+                    : 'text-stone-400 cursor-not-allowed'
+                }`}
               >
-                <span>Continue to Choose Workspace</span>
-                <ArrowRight size={14} />
+                <RotateCw size={12} className={!canResend ? 'animate-spin' : ''} />
+                <span>{canResend ? 'Resend Code' : `Resend in ${resendTimer}s`}</span>
               </button>
             </div>
-          )}
+          </form>
+        )}
 
-        </div>
-
-        {/* FOOTER */}
-        {step === 'register' && (
-          <div className="text-center mt-5">
-            <p className="text-xs text-stone-500">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="text-indigo-600 font-semibold hover:text-indigo-700 hover:underline"
-              >
-                Log In
-              </Link>
-            </p>
-
-            <div className="mt-6 flex justify-center items-center gap-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-              <span>Verified Email</span>
-              <span>•</span>
-              <span>Encrypted Passwords</span>
-              <span>•</span>
-              <span>Role Provisioning</span>
+        {/* =========================================================================
+            STEP 3: ACCOUNT ACTIVATED CONFIRMATION
+           ========================================================================= */}
+        {step === 'activated' && (
+          <div className="text-center space-y-4 py-2">
+            <div className="w-12 h-12 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
+              <CheckCircle2 size={24} />
             </div>
+
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-stone-900">
+                Account successfully activated!
+              </h2>
+              <p className="text-xs text-stone-500 max-w-xs mx-auto">
+                Welcome, <span className="font-semibold text-stone-800">{formData.fullName}</span> (@{formData.username}). Your corporate email is verified.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate('/choose-method', { replace: true })}
+              className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs mt-2"
+            >
+              <span>Continue to Workspaces</span>
+              <ArrowRight size={14} />
+            </button>
           </div>
         )}
 
