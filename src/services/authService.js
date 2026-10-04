@@ -1,33 +1,19 @@
-import API from './api';
-
 export const authService = {
-  login: async (credentials) => {
-    const response = await API.post('/auth/login', credentials);
-    if (response.data.token) {
-      localStorage.setItem('flowboard_token', response.data.token);
-    }
-    return response.data;
-  },
+    logout: (navigate) => {
+        // Clear tokens & persistent role states
+        localStorage.removeItem('token');
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('flowboard_role');
+        localStorage.removeItem('flowboard_user');
 
-  register: async (userData) => {
-    const response = await API.post('/auth/register', userData);
-    if (response.data.token) {
-      localStorage.setItem('flowboard_token', response.data.token);
-    }
-    return response.data;
-  },
+        // Clear any volatile session states
+        sessionStorage.clear();
 
-  forgotPassword: async (email) => {
-    const response = await API.post('/auth/forgot-password', { email });
-    return response.data;
-  },
-
-  getCurrentUser: async () => {
-    const response = await API.get('/auth/me');
-    return response.data;
-  },
-
-  logout: () => {
-    localStorage.removeItem('flowboard_token');
-  }
+        // Redirect to public login with replaced history
+        if (navigate) {
+            navigate('/login', { replace: true });
+        } else {
+            window.location.href = '/login';
+        }
+    },
 };
