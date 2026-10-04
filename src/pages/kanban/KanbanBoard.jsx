@@ -1,59 +1,25 @@
-import React, { useState } from "react";
-import { Kanban as KanbanIcon, Plus, Filter, GripVertical, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Kanban as KanbanIcon, Plus, GripVertical } from 'lucide-react';
 import CreateIssueModal from '../../components/modal/CreateIssueModal';
 import IssueDetailsModal from '../../components/issue/IssueDetailsModal';
-
-const initialColumns = [
-  {
-    id: 'todo',
-    title: 'TO DO',
-    status: 'TO DO',
-    count: 3,
-    cards: [
-      { key: 'FLW-104', title: 'Configure REST API Service Handlers', priority: 'Low', points: 3, status: 'TO DO', description: 'Setup Axios interceptors and base service handlers.', issueType: 'Task' },
-      { key: 'FLW-106', title: 'Add dark mode theme support', priority: 'Medium', points: 5, status: 'TO DO', description: 'Configure Tailwind CSS dark theme tokens.', issueType: 'Story' },
-      { key: 'FLW-107', title: 'Write integration test suites', priority: 'High', points: 8, status: 'TO DO', description: 'Write API endpoint tests using Vitest.', issueType: 'Task' }
-    ]
-  },
-  {
-    id: 'in-progress',
-    title: 'IN PROGRESS',
-    status: 'IN PROGRESS',
-    count: 2,
-    cards: [
-      { key: 'FLW-101', title: 'Implement OAuth 2.0 User Auth Flow', priority: 'Highest', points: 8, status: 'IN PROGRESS', description: 'OAuth token validation and backend auth routes.', issueType: 'Task' },
-      { key: 'FLW-108', title: 'Setup WebSockets real-time sync', priority: 'Medium', points: 5, status: 'IN PROGRESS', description: 'Real-time issue updates using Socket.IO.', issueType: 'Story' }
-    ]
-  },
-  {
-    id: 'review',
-    title: 'IN REVIEW',
-    status: 'IN REVIEW',
-    count: 1,
-    cards: [
-      { key: 'FLW-103', title: 'Add Drag-and-Drop Column Reordering', priority: 'High', points: 5, status: 'IN REVIEW', description: 'Implement interactive drag and drop column sorting.', issueType: 'Story' }
-    ]
-  },
-  {
-    id: 'done',
-    title: 'DONE',
-    status: 'DONE',
-    count: 2,
-    cards: [
-      { key: 'FLW-102', title: 'Design Jira-Style Responsive Application Shell', priority: 'High', points: 5, status: 'DONE', description: 'Tailwind CSS application shell layout.', issueType: 'Task' },
-      { key: 'FLW-100', title: 'Setup Vite + React Frontend Boilerplate', priority: 'Low', points: 2, status: 'DONE', description: 'Initial repository setup.', issueType: 'Task' }
-    ]
-  }
+const emptyBoardTemplate = [
+  { id: 'todo', title: 'TO DO', status: 'TO DO', cards: [] },
+  { id: 'in-progress', title: 'IN PROGRESS', status: 'IN PROGRESS', cards: [] },
+  { id: 'review', title: 'IN REVIEW', status: 'IN REVIEW', cards: [] },
+  { id: 'done', title: 'DONE', status: 'DONE', cards: [] }
 ];
 
-const KanbanBoard = () => {
-  const [columns, setColumns] = useState(initialColumns);
+const KanbanBoard = ({ boardData = null, onIssueSync = null }) => {
+  const [columns, setColumns] = useState(boardData || emptyBoardTemplate);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
-
-  // Drag and Drop states
   const [draggedCard, setDraggedCard] = useState(null);
   const [dragOverCol, setDragOverCol] = useState(null);
+  useEffect(() => {
+    if (boardData) {
+      setColumns(boardData);
+    }
+  }, [boardData]);
 
   const handleDragStart = (e, card) => {
     setDraggedCard(card);
@@ -84,34 +50,31 @@ const KanbanBoard = () => {
     if (!targetCol) return;
 
     const targetStatus = targetCol.status;
-    if (draggedCard.status === targetStatus) return;
+    if (draggedCard.status === targetStatus) {
+      setDraggedCard(null);
+      return;
+    }
 
-    // Remove from previous column and add to target column
     const updatedCard = { ...draggedCard, status: targetStatus };
-    setColumns((prev) =>
-      prev.map((col) => {
-        if (col.id === targetColId) {
-          return {
-            ...col,
-            count: col.count + 1,
-            cards: [updatedCard, ...col.cards],
-          };
-        } else {
-          return {
-            ...col,
-            count: col.cards.filter((c) => c.key !== draggedCard.key).length,
-            cards: col.cards.filter((c) => c.key !== draggedCard.key),
-          };
+    setColumns((prevCols) =>
+      prevCols.map((col) => {
+        if (col.status === draggedCard.status) {
+          return { ...col, cards: col.cards.filter((c) => c.key !== draggedCard.key) };
         }
+        if (col.id === targetColId) {
+          return { ...col, cards: [updatedCard, ...col.cards] };
+        }
+        return col;
       })
     );
 
     setDraggedCard(null);
+    if (onIssueSync) onIssueSync(updatedCard);
   };
 
   const handleCreateIssue = (newIssueData) => {
     const newCard = {
-      key: `FLW-${Math.floor(Math.random() * 900) + 110}`,
+      key: `FLW-${Date.now().toString().slice(-4)}`,
       title: newIssueData.title,
       priority: newIssueData.priority || 'Medium',
       points: Number(newIssueData.storyPoints) || 3,
@@ -120,56 +83,51 @@ const KanbanBoard = () => {
       issueType: newIssueData.issueType || 'Task',
     };
 
-    setColumns((prev) =>
-      prev.map((col) =>
-        col.id === 'todo'
-          ? { ...col, count: col.count + 1, cards: [newCard, ...col.cards] }
-          : col
+    setColumns((prevCols) =>
+      prevCols.map((col) =>
+        col.id === 'todo' ? { ...col, cards: [newCard, ...col.cards] } : col
       )
     );
+
+    if (onIssueSync) onIssueSync(newCard, 'CREATE');
   };
 
   const handleStatusChange = (issueKey, newStatus) => {
     let movedCard = null;
-    const cleanCols = columns.map((col) => {
-      const remainingCards = col.cards.filter((c) => {
-        if (c.key === issueKey) {
-          movedCard = { ...c, status: newStatus };
-          return false;
-        }
-        return true;
-      });
-      return { ...col, count: remainingCards.length, cards: remainingCards };
+
+    // 1. Remove card from its current location
+    const columnsWithoutCard = columns.map((col) => {
+      const cardExists = col.cards.find((c) => c.key === issueKey);
+      if (cardExists) {
+        movedCard = { ...cardExists, status: newStatus };
+      }
+      return { ...col, cards: col.cards.filter((c) => c.key !== issueKey) };
     });
 
     if (movedCard) {
-      const targetColId =
-        newStatus === 'TO DO'
-          ? 'todo'
-          : newStatus === 'IN PROGRESS'
-          ? 'in-progress'
-          : newStatus === 'IN REVIEW'
-          ? 'review'
-          : 'done';
-
-      const finalCols = cleanCols.map((col) =>
-        col.id === targetColId
-          ? { ...col, count: col.count + 1, cards: [movedCard, ...col.cards] }
+      // 2. Insert card into the new status column
+      const finalCols = columnsWithoutCard.map((col) =>
+        col.status === newStatus
+          ? { ...col, cards: [movedCard, ...col.cards] }
           : col
       );
+
       setColumns(finalCols);
+      
       if (selectedIssue && selectedIssue.key === issueKey) {
-        setSelectedIssue({ ...selectedIssue, status: newStatus });
+        setSelectedIssue(movedCard);
       }
+
+      if (onIssueSync) onIssueSync(movedCard, 'UPDATE');
     }
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-gray-20 rounded-xl p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-base shadow-xs">
+          <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-base shadow-sm">
             <KanbanIcon size={22} />
           </div>
           <div>
@@ -186,7 +144,7 @@ const KanbanBoard = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-xs shadow-sm transition-colors cursor-pointer"
           >
             <Plus size={16} />
             <span>Create Issue</span>
@@ -194,10 +152,12 @@ const KanbanBoard = () => {
         </div>
       </div>
 
-      {/* Board Columns Grid with HTML5 Drag & Drop */}
+      {/* Board Columns Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start pb-6">
         {columns.map((col) => {
           const isOver = dragOverCol === col.id;
+          const columnCardCount = col.cards.length; // Calculated dynamically
+
           return (
             <div
               key={col.id}
@@ -216,7 +176,7 @@ const KanbanBoard = () => {
                   {col.title}
                 </span>
                 <span className="bg-gray-200 text-gray-700 text-[11px] font-bold px-2 py-0.5 rounded-full font-mono">
-                  {col.count}
+                  {columnCardCount}
                 </span>
               </div>
 
@@ -228,7 +188,7 @@ const KanbanBoard = () => {
                     draggable
                     onDragStart={(e) => handleDragStart(e, card)}
                     onClick={() => setSelectedIssue(card)}
-                    className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-xs space-y-2.5 cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-md transition-all group"
+                    className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-sm space-y-2.5 cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-md transition-all group"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
@@ -263,8 +223,9 @@ const KanbanBoard = () => {
                   </div>
                 ))}
 
-                {col.cards.length === 0 && (
-                  <div className="h-32 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs text-gray-400">
+                {/* Empty State / Dropzone UI */}
+                {columnCardCount === 0 && (
+                  <div className="h-32 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs text-gray-400 bg-white/50">
                     Drop cards here
                   </div>
                 )}
@@ -281,12 +242,14 @@ const KanbanBoard = () => {
         onCreate={handleCreateIssue}
       />
 
-      <IssueDetailsModal
-        issue={selectedIssue}
-        isOpen={!!selectedIssue}
-        onClose={() => setSelectedIssue(null)}
-        onUpdateStatus={handleStatusChange}
-      />
+      {selectedIssue && (
+        <IssueDetailsModal
+          issue={selectedIssue}
+          isOpen={!!selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          onUpdateStatus={handleStatusChange}
+        />
+      )}
     </div>
   );
 };

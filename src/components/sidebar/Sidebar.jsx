@@ -1,460 +1,94 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  FolderKanban,
-  Layers,
-  ListTodo,
-  CalendarDays,
-  CheckSquare,
-  Users,
-  BarChart3,
-  ChevronLeft,
-  ChevronRight,
-  Settings,
-  UserRound,
-  CircleHelp,
+import { 
+  LayoutDashboard, 
+  FolderKanban, 
+  CheckSquare, 
+  Kanban, 
+  ListTodo, 
+  Calendar, 
+  Settings, 
+  HelpCircle 
 } from 'lucide-react';
 
-const navGroups = [
-  {
-    title: 'Workspace',
-    items: [
-      {
-        path: '/dashboard',
-        label: 'Dashboard',
-        icon: LayoutDashboard,
-      },
-      {
-        path: '/projects',
-        label: 'Projects',
-        icon: FolderKanban,
-        badge: '5',
-      },
-      {
-        path: '/issues',
-        label: 'My Work',
-        icon: CheckSquare,
-        badge: '0',
-      },
-    ],
-  },
-
-  {
-    title: 'Planning',
-    items: [
-      {
-        path: '/scrum',
-        label: 'Scrum Board',
-        icon: Layers,
-      },
-      {
-        path: '/scrum/backlog',
-        label: 'Backlog',
-        icon: ListTodo,
-      },
-      {
-        path: '/scrum/sprints',
-        label: 'Sprints',
-        icon: CalendarDays,
-      },
-    ],
-  },
-
-  {
-    title: 'Insights',
-    items: [
-      {
-        path: '/reports',
-        label: 'Reports',
-        icon: BarChart3,
-      },
-      {
-        path: '/users',
-        label: 'Team',
-        icon: Users,
-      },
-    ],
-  },
-];
-
-const Sidebar = ({
-  isCollapsed,
-  onToggleCollapse,
-  isMobileOpen,
-  onCloseMobile,
-}) => {
+export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMobile }) {
   return (
-    <>
-      {/* Mobile backdrop */}
-      {isMobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
-          onClick={onCloseMobile}
-        />
-      )}
-
-      <aside
-        className={`
-          fixed md:sticky
-          top-0 md:top-0
-          left-0
-          h-screen
-          flex flex-col
-          z-50
-
-          bg-[rgb(241, 243, 247)]
-          text-white
-
-          transition-all duration-300 ease-in-out
-
-          ${isCollapsed ? 'w-[66px]' : 'w-[250px]'}
-
-          ${
-            isMobileOpen
-              ? 'translate-x-0'
-              : '-translate-x-full md:translate-x-0'
-          }
-        `}
-      >
-        {/* =========================================
-            BRAND
-        ========================================== */}
-        <div
-          className={`
-            h-[72px]
-            px-5
-            flex items-center
-            border-b border-white/10
-            ${isCollapsed ? 'justify-center' : 'justify-between'}
-          `}
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Logo */}
-            <div
-              className="
-                w-9 h-9
-                shrink-0
-                rounded-xl
-                bg-indigo-600
-                flex items-center justify-center
-                shadow-lg shadow-indigo-600/20
-              "
-            >
-              <span className="text-white font-bold text-sm">
-                F
-              </span>
-            </div>
-
-            {!isCollapsed && (
-              <div className="min-w-0">
-                <h1 className="text-[16px] font-bold tracking-tight">
-                  FlowBoard
-                </h1>
-
-                <p className="text-[10px] text-gray-400 mt-0.5">
-                  Software Project
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Collapse button */}
-          <button
-            onClick={onToggleCollapse}
-            className="
-              hidden md:flex
-              w-7 h-7
-              rounded-lg
-              items-center
-              justify-center
-              text-gray-400
-              hover:text-white
-              hover:bg-white/10
-              transition
-            "
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {isCollapsed ? (
-              <ChevronRight size={16} />
-            ) : (
-              <ChevronLeft size={16} />
-            )}
-          </button>
-        </div>
-
-        {/* =========================================
-            PROJECT SELECTOR
-        ========================================== */}
-        {!isCollapsed && (
-          <div className="px-4 pt-5">
-            <div
-              className="
-                flex items-center gap-3
-                px-3 py-3
-                rounded-xl
-                bg-white/[0.06]
-                border border-white/[0.08]
-              "
-            >
-              <div
-                className="
-                  w-8 h-8
-                  rounded-lg
-                  bg-indigo-500/20
-                  text-indigo-300
-                  flex items-center justify-center
-                  font-bold text-xs
-                "
-              >
-                FLW
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-white truncate">
-                  FlowBoard
-                </p>
-
-                <p className="text-[10px] text-gray-500 truncate">
-                  Active project
-                </p>
-              </div>
-
-              <ChevronRight
-                size={14}
-                className="text-gray-500"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* =========================================
-            NAVIGATION
-        ========================================== */}
-        <nav className="flex-1 overflow-y-auto px-3 py-6">
-          <div className="space-y-7">
-            {navGroups.map((group) => (
-              <div key={group.title}>
-                {!isCollapsed && (
-                  <div
-                    className="
-                      px-3 mb-2
-                      text-[10px]
-                      font-semibold
-                      uppercase
-                      tracking-[0.12em]
-                      text-gray-500
-                    "
-                  >
-                    {group.title}
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-
-                    return (
-                      <NavLink
-                        key={item.path}
-                        to={item.path}
-                        end={item.path === '/scrum'}
-                        onClick={onCloseMobile}
-                        title={
-                          isCollapsed
-                            ? item.label
-                            : undefined
-                        }
-                        className={({ isActive }) =>
-                          `
-                          group
-                          relative
-                          flex items-center
-                          gap-3
-                          min-h-[42px]
-                          px-3
-                          rounded-lg
-                          transition-all duration-200
-
-                          ${
-                            isActive
-                              ? `
-                                bg-indigo-600
-                                text-white
-                                shadow-lg
-                                shadow-indigo-900/20
-                              `
-                              : `
-                                text-gray-400
-                                hover:text-white
-                                hover:bg-white/[0.06]
-                              `
-                          }
-
-                          ${isCollapsed ? 'justify-center' : ''}
-                          `
-                        }
-                      >
-                        <Icon
-                          size={18}
-                          strokeWidth={1.8}
-                          className="shrink-0"
-                        />
-
-                        {!isCollapsed && (
-                          <>
-                            <span className="flex-1 text-[13px] font-medium">
-                              {item.label}
-                            </span>
-
-                            {item.badge && (
-                              <span
-                                className="
-                                  min-w-[20px]
-                                  h-5
-                                  px-1.5
-                                  rounded-full
-                                  flex items-center justify-center
-                                  text-[10px]
-                                  font-semibold
-                                  bg-white/10
-                                  text-gray-300
-                                "
-                              >
-                                {item.badge}
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </nav>
-
-        {/* =========================================
-            BOTTOM ACTIONS
-        ========================================== */}
-        <div className="px-3 pb-3">
-          <div className="space-y-1">
-            <NavLink
-              to="/projects/settings"
-              title={isCollapsed ? 'Settings' : undefined}
-              className={({ isActive }) =>
-                `
-                flex items-center
-                gap-3
-                min-h-[42px]
-                px-3
-                rounded-lg
-                transition
-
-                ${
-                  isActive
-                    ? 'bg-white/10 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-white/[0.06]'
-                }
-
-                ${isCollapsed ? 'justify-center' : ''}
-                `
-              }
-            >
-              <Settings size={18} strokeWidth={1.8} />
-
-              {!isCollapsed && (
-                <span className="text-[13px] font-medium">
-                  Settings
-                </span>
-              )}
-            </NavLink>
-
-            <button
-              className={`
-                w-full
-                flex items-center
-                gap-3
-                min-h-[42px]
-                px-3
-                rounded-lg
-                text-gray-400
-                hover:text-white
-                hover:bg-white/[0.06]
-                transition
-                ${isCollapsed ? 'justify-center' : ''}
+    <aside className={`
+      fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-stone-200 transition-all duration-300
+      ${isCollapsed ? 'w-20' : 'w-64'}
+      ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      md:relative
+    `}>
+      {/* Sidebar Navigation Links (Logo header removed to ensure the site logo is only shown once in the top bar) */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        <div>
+          <p className="text-[10px] font-bold text-stone-400 tracking-wider px-3 mb-2 uppercase">Workspace</p>
+          <nav className="space-y-1">
+            <NavLink 
+              to="/dashboard" 
+              className={({ isActive }) => `
+                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                ${isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'}
               `}
-              title={isCollapsed ? 'Help' : undefined}
             >
-              <CircleHelp size={18} strokeWidth={1.8} />
-
-              {!isCollapsed && (
-                <span className="text-[13px] font-medium">
-                  Help & Support
-                </span>
-              )}
-            </button>
-          </div>
+              <LayoutDashboard size={18} />
+              {!isCollapsed && <span>Dashboard</span>}
+            </NavLink>
+            <NavLink 
+              to="/projects" 
+              className={({ isActive }) => `
+                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                ${isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'}
+              `}
+            >
+              <FolderKanban size={18} />
+              {!isCollapsed && <span>Projects</span>}
+            </NavLink>
+            <NavLink 
+              to="/my-work" 
+              className={({ isActive }) => `
+                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                ${isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'}
+              `}
+            >
+              <CheckSquare size={18} />
+              {!isCollapsed && <span>My Work</span>}
+            </NavLink>
+          </nav>
         </div>
 
-        {/* =========================================
-            USER PROFILE
-        ========================================== */}
-        <div
-          className="
-            border-t border-white/10
-            p-3
-          "
-        >
-          <div
-            className={`
-              flex items-center gap-3
-              px-2 py-2
-              rounded-xl
-              hover:bg-white/[0.05]
-              transition
-              ${isCollapsed ? 'justify-center' : ''}
-            `}
-          >
-            {/* Avatar */}
-            <div
-              className="
-                w-9 h-9
-                shrink-0
-                rounded-full
-                bg-indigo-600
-                flex items-center justify-center
-                text-xs
-                font-bold
-              "
-            >
-              MA
+        <div>
+          <p className="text-[10px] font-bold text-stone-400 tracking-wider px-3 mb-2 uppercase">Planning</p>
+          <nav className="space-y-1">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-600 hover:bg-stone-50 cursor-pointer">
+              <Kanban size={18} />
+              {!isCollapsed && <span>Scrum Board</span>}
             </div>
-
-            {!isCollapsed && (
-              <>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">
-                    Malefiya Abebaw
-                  </p>
-
-                  <p className="text-[10px] text-gray-500 truncate">
-                    Developer
-                  </p>
-                </div>
-
-                <UserRound
-                  size={15}
-                  className="text-gray-500"
-                />
-              </>
-            )}
-          </div>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-600 hover:bg-stone-50 cursor-pointer">
+              <ListTodo size={18} />
+              {!isCollapsed && <span>Backlog</span>}
+            </div>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-600 hover:bg-stone-50 cursor-pointer">
+              <Calendar size={18} />
+              {!isCollapsed && <span>Sprints</span>}
+            </div>
+          </nav>
         </div>
-      </aside>
-    </>
-  );
-};
 
-export default Sidebar;
+        <div>
+          <p className="text-[10px] font-bold text-stone-400 tracking-wider px-3 mb-2 uppercase">Insights</p>
+          <nav className="space-y-1">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-600 hover:bg-stone-50 cursor-pointer">
+              <Settings size={18} />
+              {!isCollapsed && <span>Settings</span>}
+            </div>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-600 hover:bg-stone-50 cursor-pointer">
+              <HelpCircle size={18} />
+              {!isCollapsed && <span>Help & Support</span>}
+            </div>
+          </nav>
+        </div>
+      </div>
+    </aside>
+  );
+}
