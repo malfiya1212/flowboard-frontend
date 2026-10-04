@@ -1,3 +1,4 @@
+import { Link, useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle, Layout } from 'lucide-react';
@@ -265,5 +266,12 @@ export default function Login() {
         </div>
       </div>
     </>
+   
   );
+  <Link
+  to="/forgot-password"
+  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
+>
+  Forgot password?
+</Link>
 }
