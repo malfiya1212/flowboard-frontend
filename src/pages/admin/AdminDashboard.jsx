@@ -1,28 +1,41 @@
-import React, { useState } from 'react';
-import {
-  Shield,
-  Users,
-  FolderKanban,
-  CheckSquare,
-  Layers,
-  CheckCircle2,
-  Activity,
-  UserCheck,
-  KeyRound,
-  FileText,
-  AlertTriangle,
-  ArrowRight
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Shield, Activity, LogOut } from 'lucide-react';
 
-const AdminDashboard = () => {
+export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('overview');
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
+  // --- SECURITY & LOGIN ENFORCEMENT ---
+  useEffect(() => {
+    const role = localStorage.getItem('flowboard_role');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+
+    // Must be logged in AND have an Admin role
+    if (!isAuthenticated || role !== 'Admin') {
+      navigate('/admin/login', { replace: true });
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [navigate]);
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('flowboard_role');
+    localStorage.removeItem('flowboard_user');
+    sessionStorage.clear();
+    navigate('/admin/login', { replace: true });
+  };
+
+  // 5 Main Stats (Simplified 3-color enterprise style, no icons)
   const stats = [
-    { title: 'Total Users', value: 14, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Total Projects', value: 5, icon: FolderKanban, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { title: 'Total Issues', value: 47, icon: CheckSquare, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { title: 'Active Sprints', value: 2, icon: Layers, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { title: 'Completed Issues', value: 31, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { title: 'Total Users', value: 14 },
+    { title: 'Total Projects', value: 5 },
+    { title: 'Total Issues', value: 47 },
+    { title: 'Active Sprints', value: 2 },
+    { title: 'Completed Issues', value: 31 },
   ];
 
   const systemActivities = [
@@ -48,175 +61,203 @@ const AdminDashboard = () => {
     { role: 'Reporter', permissions: 'Create issues, view issues, comment, track progress' },
   ];
 
-  return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200">
-        <div>
-          <div className="flex items-center gap-2">
-            <Shield size={24} className="text-red-600" />
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Admin Management Dashboard</h1>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            System administration, user authorization, role permissions, and global audit logs.
-          </p>
-        </div>
+  // Prevent flicker while verifying clearance
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center">
+        <div className="animate-spin h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full" />
       </div>
+    );
+  }
 
-      {/* 5 Main Admin Metric Cards (Section 28) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
+  return (
+    <div className="w-full bg-[#fafaf9] min-h-screen p-8 font-sans">
+      <div className="max-w-6xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-stone-200">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+                <Shield size={18} />
+              </div>
+              <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
+                Admin Management Console
+              </h1>
+            </div>
+            <p className="text-xs text-stone-500 mt-1">
+              Restricted workspace administration, user authorization, role permissions, and global audit logs.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAdminLogout}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 hover:text-stone-900 transition-colors shadow-sm cursor-pointer"
+          >
+            <LogOut size={14} />
+            <span>Exit Console</span>
+          </button>
+        </div>
+
+        {/* 5 Main Admin Metric Cards (Simplified 3-Color Style, No Rainbows or Icons) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {stats.map((s) => (
             <div
               key={s.title}
-              className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs hover:border-blue-300 transition-all space-y-2"
+              className="bg-white border border-stone-200 rounded-xl p-4 shadow-sm flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  {s.title}
-                </span>
-                <div className={`p-1.5 rounded-lg ${s.bg}`}>
-                  <Icon size={16} className={s.color} />
-                </div>
+              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+                {s.title}
+              </p>
+              <div className="text-2xl font-bold text-stone-900 font-mono">
+                {s.value}
               </div>
-              <div className="text-2xl font-black text-gray-900 font-mono">{s.value}</div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
 
-      {/* Sub Navigation */}
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-2 text-xs font-semibold">
-        {[
-          { id: 'overview', label: 'Overview & Activity' },
-          { id: 'users', label: 'User Management' },
-          { id: 'roles', label: 'Role Permissions Matrix' },
-        ].map((sec) => (
-          <button
-            key={sec.id}
-            onClick={() => setActiveSection(sec.id)}
-            className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
-              activeSection === sec.id
-                ? 'bg-red-50 text-red-700 font-bold border border-red-200'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            {sec.label}
-          </button>
-        ))}
-      </div>
+        {/* Sub-Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b border-stone-200 pb-2 text-xs font-semibold">
+          {[
+            { id: 'overview', label: 'Overview & Activity' },
+            { id: 'users', label: 'User Management' },
+            { id: 'roles', label: 'Role Permissions Matrix' },
+          ].map((sec) => (
+            <button
+              key={sec.id}
+              type="button"
+              onClick={() => setActiveSection(sec.id)}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                activeSection === sec.id
+                  ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                  : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+              }`}
+            >
+              {sec.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Section 1: Overview & System Activity */}
-      {activeSection === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Activity size={16} className="text-red-600" />
-                <span>System Activity Log (Section 28)</span>
-              </h2>
-              <span className="text-xs text-gray-400">Live Workspace Audit</span>
-            </div>
+        {/* Section 1: Overview & System Activity */}
+        {activeSection === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* System Activity Feed */}
+            <div className="lg:col-span-2 bg-white border border-stone-200 rounded-xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-1 border-b border-stone-100">
+                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                  <Activity size={16} className="text-indigo-600" />
+                  <span>System Activity Log</span>
+                </h2>
+                <span className="text-[11px] text-stone-400">Live Workspace Audit</span>
+              </div>
 
-            <div className="space-y-3">
-              {systemActivities.map((act) => (
-                <div
-                  key={act.id}
-                  className="p-3 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-between gap-4 text-xs"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-bold text-gray-900">{act.user}</span>
-                    <span className="font-bold text-[10px] px-1.5 py-0.2 rounded bg-gray-200 text-gray-700">
-                      {act.role}
+              <div className="space-y-2.5">
+                {systemActivities.map((act) => (
+                  <div
+                    key={act.id}
+                    className="p-3 bg-stone-50 border border-stone-100 rounded-lg flex items-center justify-between gap-4 text-xs"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-bold text-stone-900">{act.user}</span>
+                      <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-200 text-stone-700">
+                        {act.role}
+                      </span>
+                      <span className="text-stone-600">{act.action}</span>
+                    </div>
+                    <span className="text-[11px] text-stone-400 whitespace-nowrap">
+                      {act.time}
                     </span>
-                    <span className="text-gray-600">{act.action}</span>
                   </div>
-                  <span className="text-[11px] text-gray-400 whitespace-nowrap">{act.time}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Admin Privileges Info Panel */}
+            <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm space-y-4 text-xs">
+              <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2 pb-1 border-b border-stone-100">
+                <Shield size={16} className="text-indigo-600" />
+                <span>Admin Privileges</span>
+              </h2>
+              <p className="text-stone-500 leading-relaxed">
+                As a verified System Administrator, you hold full privileges to invite and deactivate accounts, assign security roles, manage team boards, and audit actions.
+              </p>
+              <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-lg text-stone-800 space-y-1">
+                <span className="font-bold text-stone-900 block">Security Status: Enforced</span>
+                <span className="text-[11px] text-stone-600 block">
+                  Hardware key verification and RBAC guards active across all operations.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Section 2: User Management Table */}
+        {activeSection === 'users' && (
+          <div className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+            <table className="w-full text-left text-xs text-stone-700">
+              <thead className="bg-stone-50 border-b border-stone-200 text-stone-400 uppercase tracking-wider font-semibold text-[10px]">
+                <tr>
+                  <th className="px-5 py-3.5">User</th>
+                  <th className="px-5 py-3.5">Email</th>
+                  <th className="px-5 py-3.5">Role</th>
+                  <th className="px-5 py-3.5">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {usersList.map((u) => (
+                  <tr key={u.id} className="hover:bg-stone-50/80 transition-colors">
+                    <td className="px-5 py-3.5 font-bold text-stone-900">{u.name}</td>
+                    <td className="px-5 py-3.5 text-stone-600 font-mono">{u.email}</td>
+                    <td className="px-5 py-3.5">
+                      <span
+                        className={`font-bold text-[10px] px-2 py-0.5 rounded border ${
+                          u.role === 'Admin'
+                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            : 'bg-stone-100 text-stone-700 border-stone-200'
+                        }`}
+                      >
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="font-bold text-stone-700 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded text-[10px]">
+                        {u.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Section 3: Role Management Matrix */}
+        {activeSection === 'roles' && (
+          <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm space-y-4">
+            <h2 className="text-sm font-bold text-stone-900 pb-1 border-b border-stone-100">
+              Role Permissions Matrix
+            </h2>
+            <div className="space-y-2.5 text-xs">
+              {rolePermissions.map((rp) => (
+                <div
+                  key={rp.role}
+                  className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                >
+                  <span className="font-bold text-stone-900 w-36 shrink-0">
+                    {rp.role}:
+                  </span>
+                  <span className="text-stone-600 flex-1 leading-relaxed">
+                    {rp.permissions}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
+        )}
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4 text-xs">
-            <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <Shield size={16} className="text-red-600" />
-              <span>Admin Privileges</span>
-            </h2>
-            <p className="text-gray-500 leading-relaxed">
-              As an Administrator, you have full privileges to manage users, delete projects, adjust roles, and audit security events.
-            </p>
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-900 space-y-1">
-              <span className="font-bold block">Security Status: Enforced</span>
-              <span className="text-[11px] block">RBAC guards are active across all REST endpoints.</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Section 2: User Management */}
-      {activeSection === 'users' && (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-          <table className="w-full text-left text-xs text-gray-700">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider font-semibold text-[11px]">
-              <tr>
-                <th className="px-5 py-3">User</th>
-                <th className="px-5 py-3">Email</th>
-                <th className="px-5 py-3">Role</th>
-                <th className="px-5 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {usersList.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-3.5 font-bold text-gray-900">{u.name}</td>
-                  <td className="px-5 py-3.5 text-gray-600">{u.email}</td>
-                  <td className="px-5 py-3.5">
-                    <span
-                      className={`font-bold text-[10px] px-2 py-0.5 rounded ${
-                        u.role === 'Admin'
-                          ? 'bg-red-50 text-red-700'
-                          : u.role === 'Project Manager'
-                          ? 'bg-blue-50 text-blue-700'
-                          : u.role === 'Developer'
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'bg-purple-50 text-purple-700'
-                      }`}
-                    >
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded text-[10px]">
-                      {u.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Section 3: Role Management */}
-      {activeSection === 'roles' && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4">
-          <h2 className="text-sm font-bold text-gray-900">Role Permissions Matrix</h2>
-          <div className="space-y-3 text-xs">
-            {rolePermissions.map((rp) => (
-              <div
-                key={rp.role}
-                className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-              >
-                <span className="font-bold text-gray-900 w-36">{rp.role}:</span>
-                <span className="text-gray-600 flex-1">{rp.permissions}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
-};
-
-export default AdminDashboard;
+}
