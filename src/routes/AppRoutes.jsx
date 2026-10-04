@@ -1,7 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import MainLayout from '../components/common/MainLayout';
-
+import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
+// Inside <Routes>:
 import Login from '../pages/auth/Login';
 import AdminLogin from '../pages/auth/AdminLogin';
 import Register from '../pages/auth/Register';
@@ -20,6 +22,8 @@ import Users from '../pages/users/Users';
 import Profile from '../pages/users/Profile';
 import Reports from '../pages/reports/Reports';
 import AdminDashboard from '../pages/admin/AdminDashboard';
+// Inside <Routes>:
+
 
 // =========================================================================
 // 1. STANDARD USER GUARD: User must be logged in
