@@ -7,41 +7,37 @@ import Register from '../pages/auth/Register';
 import AdminLogin from '../pages/auth/AdminLogin';
 import ChooseMethod from '../pages/auth/ChooseMethod';
 
-// Admin Pages
+// Admin & Dashboard
 import AdminDashboard from '../pages/admin/AdminDashboard';
-
-// Main App Pages
-import MainLayout from '../components/common/MainLayout';
 import Dashboard from '../pages/dashboard/Dashboard';
+import MainLayout from '../components/common/MainLayout';
 
-// Guards
+// Protection Guards
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import AdminProtectedRoute from '../components/common/AdminProtectedRoute';
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* --- Public Routes --- */}
+      {/* 1. Public Auth Pages */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* --- Standard Protected Routes (Requires Login) --- */}
+      {/* 2. Standard Protected User Pages */}
       <Route element={<ProtectedRoute />}>
         <Route path="/choose-method" element={<ChooseMethod />} />
-        
-        {/* App Layout */}
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
         </Route>
       </Route>
 
-      {/* --- ADMIN ONLY PROTECTED ROUTES (Requires Admin Role & Key) --- */}
+      {/* 3. STRICT ADMIN GUARD: No one can access /admin without logging in as Admin first */}
       <Route element={<AdminProtectedRoute />}>
         <Route path="/admin" element={<AdminDashboard />} />
       </Route>
 
-      {/* Default Catch-all */}
+      {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
