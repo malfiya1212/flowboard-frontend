@@ -1,29 +1,29 @@
 import axios from 'axios';
 
 const API_BASE_URL =
-    import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+    import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-export const api = axios.create({
+const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
-    withCredentials: true, // Needed if refresh tokens are stored in HttpOnly cookies
+    withCredentials: true,
 });
 
-// Request Interceptor: Attach current access token
+// 1. Request Interceptor: Attach Access Token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('flowboard_access_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        const accessToken = localStorage.getItem('flowboard_access_token');
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
         }
         return config;
     },
     (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle Token Expiration (401) & Silent Refresh
+// 2. Response Interceptor: Handle Token Expiration (401)
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -43,7 +43,6 @@ api.interceptors.response.use(
     async(error) => {
         const originalRequest = error.config;
 
-        // Detect expired session (401) and prevent infinite loop
         if (error.response ? .status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
@@ -62,12 +61,12 @@ api.interceptors.response.use(
             const refreshToken = localStorage.getItem('flowboard_refresh_token');
 
             if (!refreshToken) {
-                handleSessionExpired();
+                handleSessionExpiration();
                 return Promise.reject(error);
             }
 
             try {
-                const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
+                const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
                     refreshToken,
                 });
 
@@ -79,14 +78,14 @@ api.interceptors.response.use(
                 }
 
                 api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
-                processQueue(null, newAccessToken);
-
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+                processQueue(null, newAccessToken);
                 return api(originalRequest);
-            } catch (refreshError) {
-                processQueue(refreshError, null);
-                handleSessionExpired();
-                return Promise.reject(refreshError);
+            } catch (refreshErr) {
+                processQueue(refreshErr, null);
+                handleSessionExpiration();
+                return Promise.reject(refreshErr);
             } finally {
                 isRefreshing = false;
             }
@@ -96,16 +95,17 @@ api.interceptors.response.use(
     }
 );
 
-function handleSessionExpired() {
+function handleSessionExpiration() {
+    const isAdmin = localStorage.getItem('flowboard_role') === 'Admin';
     localStorage.removeItem('flowboard_access_token');
     localStorage.removeItem('flowboard_refresh_token');
-    localStorage.removeItem('flowboard_role');
     localStorage.removeItem('flowboard_user');
+    localStorage.removeItem('flowboard_role');
     localStorage.removeItem('isAuthenticated');
 
-    if (window.location.pathname.startsWith('/admin')) {
-        window.location.href = '/admin/login?session_expired=true';
-    } else {
-        window.location.href = '/login?session_expired=true';
-    }
+    window.location.href = isAdmin ? '/admin/login?session=expired' : '/login?session=expired';
 }
+
+// Export both named and default so all import styles work
+export { api };
+export default api;
