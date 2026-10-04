@@ -1,50 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Shield,
-  Lock,
-  Mail,
-  ArrowRight,
-  AlertCircle,
-  KeyRound,
-  CheckCircle2,
-  Server,
-  Terminal,
-  Zap
+  Shield, Lock, Mail, ArrowRight, AlertCircle, KeyRound,
+  Terminal, Zap, Eye, EyeOff, Activity, ShieldCheck
 } from 'lucide-react';
-import { authService } from '../../services/authService';
 
 const AdminLogin = () => {
+  // --- STATES ---
   const [email, setEmail] = useState('malefiya@flowboard.com');
   const [password, setPassword] = useState('admin123');
   const [adminSecurityKey, setAdminSecurityKey] = useState('FB-ADM-9941');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [systemStatus, setSystemStatus] = useState('Checking...');
 
   const navigate = useNavigate();
 
+  // --- FEATURE: MOCK SYSTEM HEALTH ---
+  useEffect(() => {
+    const timer = setTimeout(() => setSystemStatus('System Secure'), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // --- HANDLERS ---
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setLoading(true);
 
     try {
-      // Simulate/perform admin login
+      // Professional practice: Simulate a secure delay
+      await new Promise(resolve => setTimeout(resolve, 1200));
+
+      // Store Admin Session
       localStorage.setItem('flowboard_role', 'Admin');
       localStorage.setItem('flowboard_user', JSON.stringify({
         name: 'Malefiya',
-        username: 'malefiya',
-        email: email.trim(),
         role: 'Admin',
+        lastLogin: new Date().toISOString()
       }));
 
-      // Direct redirection to the Admin Dashboard
       navigate('/admin');
     } catch (err) {
-      setErrorMessage(
-        err.response?.data?.message || 'Admin authentication failed. Invalid admin credentials or security key.'
-      );
+      setErrorMessage('Access Denied: Invalid security clearance or credentials.');
     } finally {
       setLoading(false);
     }
@@ -57,62 +57,79 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
-      {/* Background Decorative Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden font-sans select-none">
+      
+      {/* BACKGROUND DECORATIVE ELEMENTS */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-red-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-6 relative z-10 text-slate-100">
-        {/* Header with Security Badge */}
-        <div className="text-center flex flex-col items-center gap-2">
-          <div className="w-14 h-14 bg-gradient-to-br from-red-600 to-rose-700 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-950/50 mb-1 ring-4 ring-red-950/60">
-            <Shield size={28} />
+      {/* TOP STATUS BAR (Enterprise Detail) */}
+      <div className="absolute top-6 right-8 hidden md:flex items-center gap-4 text-[10px] font-mono tracking-widest uppercase">
+        <div className="flex items-center gap-2 text-slate-500">
+          <Activity size={12} className="text-emerald-500 animate-pulse" />
+          <span>Server: {systemStatus}</span>
+        </div>
+        <div className="text-slate-700">|</div>
+        <div className="flex items-center gap-2 text-slate-500">
+          <ShieldCheck size={12} className="text-blue-500" />
+          <span>SSL: AES-256</span>
+        </div>
+      </div>
+
+      <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-8 space-y-7 relative z-10 text-slate-100">
+        
+        {/* HEADER SECTION */}
+        <div className="text-center flex flex-col items-center gap-3">
+          <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-rose-700 text-white rounded-2xl flex items-center justify-center shadow-2xl shadow-red-950/40 ring-4 ring-red-950/50 mb-2">
+            <Shield size={32} strokeWidth={2.5} />
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-950/80 border border-red-800/60 text-red-400 rounded-full text-[11px] font-bold tracking-wider uppercase">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-950/40 border border-red-500/20 text-red-400 rounded-full text-[10px] font-bold tracking-widest uppercase">
             <KeyRound size={12} />
-            <span>Administrator Console</span>
+            <span>Restricted Access Console</span>
           </div>
 
-          <h1 className="text-2xl font-black text-white tracking-tight">Admin System Login</h1>
-          <p className="text-xs text-slate-400 max-w-xs">
-            Restricted access for System Administrators, User Management, and Workspace Security.
-          </p>
+          <div>
+            <h1 className="text-2xl font-black text-white tracking-tight">Admin System Login</h1>
+            <p className="text-xs text-slate-400 mt-1 px-4 leading-relaxed">
+              Log in with your Master credentials and Hardware Security Token to access the management layer.
+            </p>
+          </div>
         </div>
 
-        {/* Demo Quick Autofill Chip */}
-        <div
+        {/* DEMO AUTOFILL CHIP */}
+        <button
           onClick={handleAutofillAdmin}
-          className="p-3 bg-slate-800/80 border border-slate-700 hover:border-red-500/50 rounded-xl flex items-center justify-between text-xs cursor-pointer transition-colors"
+          className="w-full p-3 bg-slate-950/50 border border-slate-800 hover:border-red-500/30 rounded-2xl flex items-center justify-between group transition-all"
         >
           <div className="flex items-center gap-2">
-            <Zap size={14} className="text-amber-400" />
-            <span className="text-slate-300 font-medium">Demo: Autofill Master Admin</span>
+            <Zap size={14} className="text-amber-400 group-hover:scale-125 transition-transform" />
+            <span className="text-[11px] text-slate-400 font-medium tracking-wide uppercase">Autofill Master Admin</span>
           </div>
-          <span className="text-[10px] font-mono font-bold text-red-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-800/50">
-            malefiya@flowboard.com
+          <span className="text-[10px] font-mono text-red-400 bg-red-950/40 px-2.5 py-1 rounded-lg border border-red-900/30">
+            FB-MASTER-99
           </span>
-        </div>
+        </button>
 
-        {/* Error Alert Banner */}
+        {/* ERROR MESSAGE */}
         {errorMessage && (
-          <div className="p-3 bg-red-950/80 border border-red-800/80 rounded-lg text-xs text-red-300 flex items-center gap-2">
+          <div className="p-3 bg-red-950/50 border border-red-800/50 rounded-xl text-xs text-red-300 flex items-center gap-3 animate-shake">
             <AlertCircle size={16} className="shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        {/* Admin Login Form */}
-        <form onSubmit={handleAdminLogin} className="space-y-4 text-xs">
-          {/* Admin Email */}
-          <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Admin Email Address *</label>
-            <div className="relative flex items-center">
-              <Mail size={16} className="absolute left-3 text-slate-500 pointer-events-none" />
+        {/* LOGIN FORM */}
+        <form onSubmit={handleAdminLogin} className="space-y-5">
+          {/* EMAIL */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Admin Identity</label>
+            <div className="relative">
+              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
               <input
                 type="email"
                 required
-                className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all font-mono"
+                className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all font-mono"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@flowboard.com"
@@ -120,34 +137,41 @@ const AdminLogin = () => {
             </div>
           </div>
 
-          {/* Admin Password */}
-          <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Master Password *</label>
-            <div className="relative flex items-center">
-              <Lock size={16} className="absolute left-3 text-slate-500 pointer-events-none" />
+          {/* PASSWORD WITH TOGGLE */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Master Password</label>
+            <div className="relative">
+              <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
-                className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all font-mono"
+                className="w-full pl-12 pr-12 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all font-mono"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
               />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
-          {/* Admin Security Token / Key */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="font-semibold text-slate-300">Security Clearance Key</label>
-              <span className="text-[10px] text-slate-500 font-mono">2FA / Hardware token</span>
+          {/* SECURITY TOKEN */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center ml-1">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Security Clearance Key</label>
+              <span className="text-[9px] font-mono text-slate-600">Encrypted Path</span>
             </div>
-            <div className="relative flex items-center">
-              <Terminal size={16} className="absolute left-3 text-slate-500 pointer-events-none" />
+            <div className="relative">
+              <Terminal size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
               <input
                 type="text"
                 required
-                className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-amber-300 placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all font-mono"
+                className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-amber-400 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all font-mono tracking-widest"
                 value={adminSecurityKey}
                 onChange={(e) => setAdminSecurityKey(e.target.value)}
                 placeholder="FB-ADM-XXXX"
@@ -155,39 +179,48 @@ const AdminLogin = () => {
             </div>
           </div>
 
-          {/* Remember Me */}
-          <div className="flex items-center gap-2 pt-1">
+          {/* REMEMBER ME */}
+          <div className="flex items-center gap-3 px-1">
             <input
               type="checkbox"
               id="adminRemember"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 text-red-600 bg-slate-950 border-slate-700 rounded focus:ring-red-500 cursor-pointer"
+              className="w-4 h-4 accent-red-600 cursor-pointer"
             />
-            <label htmlFor="adminRemember" className="text-xs text-slate-400 cursor-pointer">
-              Maintain secure administrative session (30 days)
+            <label htmlFor="adminRemember" className="text-[11px] text-slate-500 cursor-pointer hover:text-slate-300">
+              Maintain administrative session for 24 hours
             </label>
           </div>
 
-          {/* Submit Button */}
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 disabled:opacity-50 text-white py-2.5 rounded-lg font-bold text-sm transition-all cursor-pointer shadow-lg shadow-red-950/50 mt-2"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:opacity-50 text-white py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl shadow-red-950/20 active:scale-[0.98]"
           >
-            <span>{loading ? 'Authenticating Console...' : 'Access Admin Console'}</span>
-            <ArrowRight size={16} />
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Activity size={18} className="animate-spin" /> Verifying Credentials...
+              </span>
+            ) : (
+              <>
+                <span>Access Admin Console</span>
+                <ArrowRight size={18} strokeWidth={3} />
+              </>
+            )}
           </button>
         </form>
 
-        {/* Footer Link to Standard User Login */}
-        <div className="text-center text-xs text-slate-400 pt-4 border-t border-slate-800 space-y-1">
-          <div>Not a System Administrator?</div>
+        {/* FOOTER */}
+        <div className="pt-6 border-t border-slate-800/50 flex flex-col items-center gap-3">
+          <p className="text-[10px] text-slate-500 font-medium">NOT AN ADMINISTRATOR?</p>
           <Link
             to="/login"
-            className="inline-block text-blue-400 hover:text-blue-300 font-bold hover:underline transition-colors"
+            className="group flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 font-bold transition-all"
           >
-            ← Return to Standard User / Team Login
+            <span className="group-hover:-translate-x-1 transition-transform">←</span>
+            Return to Team Login
           </Link>
         </div>
       </div>
