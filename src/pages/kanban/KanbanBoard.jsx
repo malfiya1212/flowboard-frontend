@@ -1,257 +1,354 @@
-import React, { useState, useEffect } from "react";
-import { Kanban as KanbanIcon, Plus, GripVertical } from 'lucide-react';
-import CreateIssueModal from '../../components/modal/CreateIssueModal';
-import IssueDetailsModal from '../../components/issue/IssueDetailsModal';
-const emptyBoardTemplate = [
-  { id: 'todo', title: 'TO DO', status: 'TO DO', cards: [] },
-  { id: 'in-progress', title: 'IN PROGRESS', status: 'IN PROGRESS', cards: [] },
-  { id: 'review', title: 'IN REVIEW', status: 'IN REVIEW', cards: [] },
-  { id: 'done', title: 'DONE', status: 'DONE', cards: [] }
-];
+import React, { useState } from 'react';
+import { 
+  Search, Filter, Plus, Layout, BarChart2, 
+  Settings, MoreHorizontal, AlertCircle, CheckSquare, Bookmark, X, User, Tag, ShieldAlert
+} from 'lucide-react';
 
-const KanbanBoard = ({ boardData = null, onIssueSync = null }) => {
-  const [columns, setColumns] = useState(boardData || emptyBoardTemplate);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedIssue, setSelectedIssue] = useState(null);
-  const [draggedCard, setDraggedCard] = useState(null);
-  const [dragOverCol, setDragOverCol] = useState(null);
-  useEffect(() => {
-    if (boardData) {
-      setColumns(boardData);
+export default function KanbanDashboard() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Kanban Columns with WIP Limits
+  const [columns, setColumns] = useState([
+    { id: 'backlog', title: 'Backlog', wip: 0 },
+    { id: 'todo', title: 'To Do', wip: 5 },
+    { id: 'in-progress', title: 'In Progress', wip: 3 },
+    { id: 'testing', title: 'Testing', wip: 2 },
+    { id: 'done', title: 'Done', wip: 0 }
+  ]);
+
+  // Real Kanban Issues State
+  const [issues, setIssues] = useState([
+    {
+      id: 'FB-101',
+      type: 'Task',
+      summary: 'Implement landing page UI wireframes',
+      description: 'Build responsive landing page layout with Tailwind CSS.',
+      assignee: 'Malefiya',
+      priority: 'High',
+      status: 'todo',
+      dueDate: '2026-10-20',
+      labels: ['frontend', 'UI']
+    },
+    {
+      id: 'FB-102',
+      type: 'Bug',
+      summary: 'Fix database connection timeout error',
+      description: 'Mongoose connection drops during heavy traffic spikes.',
+      assignee: 'Admin',
+      priority: 'Highest',
+      status: 'in-progress',
+      dueDate: '2026-10-18',
+      labels: ['backend', 'database']
     }
-  }, [boardData]);
+  ]);
 
-  const handleDragStart = (e, card) => {
-    setDraggedCard(card);
-    e.dataTransfer.setData('text/plain', card.key);
-    e.dataTransfer.effectAllowed = 'move';
-  };
+  const [formData, setFormData] = useState({
+    type: 'Task',
+    summary: '',
+    description: '',
+    assignee: 'Malefiya',
+    priority: 'Medium',
+    status: 'todo',
+    dueDate: '2026-10-20',
+    labels: 'frontend'
+  });
 
-  const handleDragOver = (e, colId) => {
+  const handleCreateIssue = (e) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverCol !== colId) {
-      setDragOverCol(colId);
-    }
-  };
+    if (!formData.summary.trim()) return;
 
-  const handleDragLeave = (colId) => {
-    if (dragOverCol === colId) {
-      setDragOverCol(null);
-    }
-  };
-
-  const handleDrop = (e, targetColId) => {
-    e.preventDefault();
-    setDragOverCol(null);
-    if (!draggedCard) return;
-
-    const targetCol = columns.find((c) => c.id === targetColId);
-    if (!targetCol) return;
-
-    const targetStatus = targetCol.status;
-    if (draggedCard.status === targetStatus) {
-      setDraggedCard(null);
+    // Check WIP Limits before adding
+    const targetCol = columns.find(c => c.id === formData.status);
+    const currentCount = issues.filter(i => i.status === formData.status).length;
+    
+    if (targetCol && targetCol.wip > 0 && currentCount >= targetCol.wip) {
+      alert(`⚠ WIP Limit Reached! Column "${targetCol.title}" already contains ${currentCount} issues (Limit: ${targetCol.wip}).`);
       return;
     }
 
-    const updatedCard = { ...draggedCard, status: targetStatus };
-    setColumns((prevCols) =>
-      prevCols.map((col) => {
-        if (col.status === draggedCard.status) {
-          return { ...col, cards: col.cards.filter((c) => c.key !== draggedCard.key) };
-        }
-        if (col.id === targetColId) {
-          return { ...col, cards: [updatedCard, ...col.cards] };
-        }
-        return col;
-      })
-    );
-
-    setDraggedCard(null);
-    if (onIssueSync) onIssueSync(updatedCard);
-  };
-
-  const handleCreateIssue = (newIssueData) => {
-    const newCard = {
-      key: `FLW-${Date.now().toString().slice(-4)}`,
-      title: newIssueData.title,
-      priority: newIssueData.priority || 'Medium',
-      points: Number(newIssueData.storyPoints) || 3,
-      status: 'TO DO',
-      description: newIssueData.description || '',
-      issueType: newIssueData.issueType || 'Task',
+    const newIssue = {
+      ...formData,
+      id: `FB-${120 + issues.length + 1}`,
+      labels: formData.labels.split(',').map(l => l.trim())
     };
 
-    setColumns((prevCols) =>
-      prevCols.map((col) =>
-        col.id === 'todo' ? { ...col, cards: [newCard, ...col.cards] } : col
-      )
-    );
-
-    if (onIssueSync) onIssueSync(newCard, 'CREATE');
+    setIssues([newIssue, ...issues]);
+    setIsModalOpen(false);
+    setFormData({
+      type: 'Task',
+      summary: '',
+      description: '',
+      assignee: 'Malefiya',
+      priority: 'Medium',
+      status: 'todo',
+      dueDate: '2026-10-20',
+      labels: 'frontend'
+    });
   };
 
-  const handleStatusChange = (issueKey, newStatus) => {
-    let movedCard = null;
+  const moveIssue = (issueId, newStatus) => {
+    // Check WIP Limit on destination column
+    const targetCol = columns.find(c => c.id === newStatus);
+    const currentCount = issues.filter(i => i.status === newStatus).length;
 
-    // 1. Remove card from its current location
-    const columnsWithoutCard = columns.map((col) => {
-      const cardExists = col.cards.find((c) => c.key === issueKey);
-      if (cardExists) {
-        movedCard = { ...cardExists, status: newStatus };
-      }
-      return { ...col, cards: col.cards.filter((c) => c.key !== issueKey) };
-    });
+    if (targetCol && targetCol.wip > 0 && currentCount >= targetCol.wip) {
+      alert(`⚠ WIP Limit Reached! "${targetCol.title}" is capped at ${currentCount} items.`);
+      return;
+    }
 
-    if (movedCard) {
-      // 2. Insert card into the new status column
-      const finalCols = columnsWithoutCard.map((col) =>
-        col.status === newStatus
-          ? { ...col, cards: [movedCard, ...col.cards] }
-          : col
-      );
+    setIssues(issues.map(i => i.id === issueId ? { ...i, status: newStatus } : i));
+  };
 
-      setColumns(finalCols);
-      
-      if (selectedIssue && selectedIssue.key === issueKey) {
-        setSelectedIssue(movedCard);
-      }
-
-      if (onIssueSync) onIssueSync(movedCard, 'UPDATE');
+  const getTypeIcon = (type) => {
+    switch(type) {
+      case 'Bug': return <AlertCircle size={14} className="text-red-500" />;
+      case 'Task': return <CheckSquare size={14} className="text-blue-500" />;
+      default: return <Bookmark size={14} className="text-emerald-600" />;
     }
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="bg-white border border-gray-20 rounded-xl p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-base shadow-sm">
-            <KanbanIcon size={22} />
-          </div>
+    <div className="flex-1 min-h-screen bg-stone-50 font-sans text-stone-900 antialiased">
+      <div className="p-8 max-w-[1400px] mx-auto">
+        
+        {/* --- HEADER --- */}
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">Kanban Dashboard</h1>
-              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded uppercase">
-                Continuous Delivery
-              </span>
+            <div className="text-xs text-stone-500 font-medium mb-1">
+              Workspace / FlowBoard / Continuous Kanban
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">FlowBoard • Visual flow & WIP limit monitoring</p>
+            <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
+              Kanban Flow Board
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="h-9 px-3 bg-white border border-stone-200 text-stone-700 rounded-lg text-sm font-semibold hover:bg-stone-50 transition-colors flex items-center gap-2 shadow-xs cursor-pointer">
+              <Settings size={16} />
+              Board Settings & WIP
+            </button>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
+            >
+              <Plus size={16} />
+              Create Issue
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-xs shadow-sm transition-colors cursor-pointer"
-          >
-            <Plus size={16} />
-            <span>Create Issue</span>
-          </button>
+        {/* --- SEARCH & QUICK FILTERS --- */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+            <input 
+              type="text"
+              placeholder="Search Kanban issues..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 pl-9 pr-3 w-72 bg-white border border-stone-200 rounded-lg text-sm text-stone-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 shadow-xs"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Board Columns Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start pb-6">
-        {columns.map((col) => {
-          const isOver = dragOverCol === col.id;
-          const columnCardCount = col.cards.length; // Calculated dynamically
+        {/* --- KANBAN COLUMNS (CONTINUOUS FLOW) --- */}
+        <div className="flex gap-4 overflow-x-auto pb-6 min-h-[600px]">
+          {columns.map(col => {
+            const colIssues = issues.filter(i => 
+              i.status === col.id && 
+              i.summary.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            const isWipExceeded = col.wip > 0 && colIssues.length >= col.wip;
 
-          return (
-            <div
-              key={col.id}
-              onDragOver={(e) => handleDragOver(e, col.id)}
-              onDragLeave={() => handleDragLeave(col.id)}
-              onDrop={(e) => handleDrop(e, col.id)}
-              className={`rounded-xl p-3.5 flex flex-col gap-3 min-h-[560px] border transition-all ${
-                isOver
-                  ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-500 shadow-md'
-                  : 'bg-gray-100/90 border-gray-200'
-              }`}
-            >
-              {/* Column Header */}
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-black text-gray-800 tracking-wider uppercase">
-                  {col.title}
-                </span>
-                <span className="bg-gray-200 text-gray-700 text-[11px] font-bold px-2 py-0.5 rounded-full font-mono">
-                  {columnCardCount}
-                </span>
-              </div>
-
-              {/* Column Cards */}
-              <div className="space-y-3 flex-1">
-                {col.cards.map((card) => (
-                  <div
-                    key={card.key}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, card)}
-                    onClick={() => setSelectedIssue(card)}
-                    className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-sm space-y-2.5 cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-md transition-all group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <GripVertical size={12} className="text-gray-300 group-hover:text-gray-500" />
-                        <span className="font-mono text-xs font-bold text-blue-700">
-                          {card.key}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                          card.priority === 'Highest' || card.priority === 'High'
-                            ? 'bg-orange-50 text-orange-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {card.priority}
-                      </span>
-                    </div>
-
-                    <h3 className="text-xs font-semibold text-gray-900 leading-snug line-clamp-2">
-                      {card.title}
+            return (
+              <div 
+                key={col.id} 
+                className={`flex-1 min-w-[260px] max-w-[300px] bg-stone-100/90 border rounded-xl flex flex-col ${isWipExceeded ? 'border-red-300 bg-red-50/30' : 'border-stone-200/80'}`}
+              >
+                {/* Column Header */}
+                <div className="p-3.5 flex items-center justify-between border-b border-stone-200/60 bg-white/50 rounded-t-xl">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-stone-700 uppercase tracking-wider">
+                      {col.title}
                     </h3>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isWipExceeded ? 'bg-red-100 text-red-700' : 'bg-stone-200 text-stone-700'}`}>
+                      {colIssues.length} {col.wip > 0 && `/ ${col.wip}`}
+                    </span>
+                  </div>
+                  <MoreHorizontal size={16} className="text-stone-400 cursor-pointer" />
+                </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs text-gray-500">
-                      <span className="font-mono font-bold text-[10px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
-                        {card.points || 0} pts
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-semibold">
-                        {card.issueType || 'Task'}
-                      </span>
+                {/* Column Body / Cards Container */}
+                <div className="flex-1 p-2.5 flex flex-col gap-3 overflow-y-auto">
+                  {colIssues.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-stone-200 rounded-lg my-2">
+                      <p className="text-xs text-stone-400">No tasks</p>
                     </div>
-                  </div>
-                ))}
+                  ) : (
+                    colIssues.map(issue => (
+                      <div 
+                        key={issue.id} 
+                        className="bg-white border border-stone-200/90 rounded-xl p-4 shadow-xs hover:border-indigo-400 transition-all group flex flex-col gap-2.5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-stone-500">
+                            {getTypeIcon(issue.type)} {issue.id}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${issue.priority === 'Highest' || issue.priority === 'High' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-stone-100 text-stone-600'}`}>
+                            {issue.priority}
+                          </span>
+                        </div>
 
-                {/* Empty State / Dropzone UI */}
-                {columnCardCount === 0 && (
-                  <div className="h-32 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs text-gray-400 bg-white/50">
-                    Drop cards here
-                  </div>
-                )}
+                        <p className="text-sm font-semibold text-stone-900 leading-snug">
+                          {issue.summary}
+                        </p>
+
+                        {/* Labels */}
+                        {issue.labels && issue.labels.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {issue.labels.map((l, idx) => (
+                              <span key={idx} className="text-[10px] font-medium px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded">
+                                #{l}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Card Footer: Assignee & Quick Move Controls */}
+                        <div className="flex items-center justify-between pt-2.5 border-t border-stone-100 mt-1">
+                          <span className="text-xs font-semibold text-stone-700 flex items-center gap-1">
+                            <User size={12} className="text-stone-400" /> {issue.assignee || 'Unassigned'}
+                          </span>
+
+                          {/* Quick Status Shift Dropdown */}
+                          <select 
+                            value={issue.status}
+                            onChange={(e) => moveIssue(issue.id, e.target.value)}
+                            className="text-[10px] bg-stone-100 hover:bg-stone-200 font-semibold text-stone-700 px-2 py-1 rounded border border-stone-200 focus:outline-none cursor-pointer transition-colors"
+                          >
+                            {columns.map(c => (
+                              <option key={c.id} value={c.id}>Move: {c.title}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
       </div>
 
-      {/* Modals */}
-      <CreateIssueModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateIssue}
-      />
+      {/* --- CREATE ISSUE MODAL --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-lg bg-white border border-stone-200 rounded-xl shadow-xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-stone-50">
+              <h2 className="text-base font-bold text-stone-900">Create Kanban Issue</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-stone-400 hover:text-stone-600 cursor-pointer">
+                <X size={18} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateIssue} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider mb-1">Issue Type</label>
+                  <select 
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    className="w-full h-9 px-3 bg-white border border-stone-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-indigo-600"
+                  >
+                    <option value="Task">Task</option>
+                    <option value="Bug">Bug</option>
+                    <option value="Story">Story</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider mb-1">Initial Column Status</label>
+                  <select 
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="w-full h-9 px-3 bg-white border border-stone-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-indigo-600"
+                  >
+                    {columns.map(c => (
+                      <option key={c.id} value={c.id}>{c.title}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-      {selectedIssue && (
-        <IssueDetailsModal
-          issue={selectedIssue}
-          isOpen={!!selectedIssue}
-          onClose={() => setSelectedIssue(null)}
-          onUpdateStatus={handleStatusChange}
-        />
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 uppercase tracking-wider mb-1">Summary *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="What needs to be done?"
+                  value={formData.summary}
+                  onChange={(e) => setFormData({...formData, summary: e.target.value})}
+                  className="w-full h-9 px-3 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none focus:border-indigo-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase tracking-wider mb-1">Assignee</label>
+                  <select 
+                    value={formData.assignee}
+                    onChange={(e) => setFormData({...formData, assignee: e.target.value})}
+                    className="w-full h-8 px-2 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none"
+                  >
+                    <option value="Malefiya">Malefiya</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase tracking-wider mb-1">Priority</label>
+                  <select 
+                    value={formData.priority}
+                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                    className="w-full h-8 px-2 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none"
+                  >
+                    <option value="Highest">Highest</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-700 uppercase tracking-wider mb-1">Labels (comma)</label>
+                  <input 
+                    type="text"
+                    value={formData.labels}
+                    onChange={(e) => setFormData({...formData, labels: e.target.value})}
+                    className="w-full h-8 px-2 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-stone-100">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)}
+                  className="h-9 px-4 bg-white border border-stone-200 text-stone-700 rounded-lg text-xs font-semibold hover:bg-stone-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="h-9 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs cursor-pointer"
+                >
+                  Create Issue
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
+
     </div>
   );
-};
-
-export default KanbanBoard;
+}
