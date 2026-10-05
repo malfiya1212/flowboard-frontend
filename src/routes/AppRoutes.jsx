@@ -52,7 +52,7 @@ export default function AppRoutes() {
         path="/kanban-dashboard" 
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <KanbanDashboard />
           </ProtectedRoute>
         } 
       />
