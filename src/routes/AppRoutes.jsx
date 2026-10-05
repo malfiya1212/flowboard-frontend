@@ -12,6 +12,7 @@ import ResetPassword from '../pages/auth/ResetPassword';
 import ChooseMethod from '../pages/ChooseMethod';
 import Dashboard from "../pages/Dashboard";
 import Projects from "../pages/projects/Projects";
+import KanbanDashboard from '../pages/KanbanDashboard';
 
 // Route Protector
 import ProtectedRoute from '../components/common/ProtectedRoute';
