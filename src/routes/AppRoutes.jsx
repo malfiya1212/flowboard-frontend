@@ -1,24 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import MainLayout from '../components/common/MainLayout';
-import ForgotPassword from '../pages/auth/ForgotPassword';
-import ResetPassword from '../pages/auth/ResetPassword';
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import ProtectedRoute from '../components/common/ProtectedRoute';
-import Navbar from '../components/common/Navbar';
-
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
-import ProjectList from '../pages/projects/ProjectList';
-import ProjectDetail from '../pages/projects/ProjectDetail';
-// Inside <Routesimport ProjectWorkspace from '../pages/projects/ProjectWorkspace';
-
-// Under your ProtectedRoute in AppRoutes.jsx:
-import ProjectWorkspace from '../pages/projects/ProjectWorkspace';
-import Login from '../pages/auth/Login';
 import AdminLogin from '../pages/auth/AdminLogin';
-import Register from '../pages/auth/Register';
 import ChooseMethod from '../pages/auth/ChooseMethod';
 import Dashboard from '../pages/dashboard/Dashboard';
 import Projects from '../pages/projects/Projects';
@@ -34,7 +19,6 @@ import Users from '../pages/users/Users';
 import Profile from '../pages/users/Profile';
 import Reports from '../pages/reports/Reports';
 import AdminDashboard from '../pages/admin/AdminDashboard';
-// Inside <Routes>:
 
 
 // =========================================================================
@@ -105,64 +89,12 @@ const AppRoutes = () => {
       {/* --- STRICT ADMIN ROUTE (Only accessible after Admin Login) --- */}
       <Route element={<AdminProtectedRoute />}>
         <Route path="/admin" element={<AdminDashboard />} />
-      </Route><Route path="/projects/:id" element={<ProjectWorkspace />} />
-<Route path="/scrum" element={<ProjectWorkspace />} />
-<Route path="/kanban" element={<ProjectWorkspace />} />
+      </Route>
 
       {/* --- Catch-all route (Send unauthenticated users to login) --- */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
-  // Layout wrapper for authenticated pages
-function AppLayout() {
-  return (
-    <div className="min-h-screen bg-stone-50 flex flex-col font-sans">
-      <Navbar />
-      <main className="flex-1">
-        <ProtectedRoute />
-      </main>
-    </div>
-  );
-}
-
-export default function AppRoutes() {
-  return (
-    <Routes>
-      {/* Public Authentication Routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-
-      {/* Protected Project Workspace Routes */}
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Navigate to="/projects" replace />} />
-        <Route path="/projects" element={<ProjectList />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
-      </Route>
-
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/projects" replace />} />
-    </Routes>
-  );
-}
-Application Root (src/App.jsx)
-JavaScript
-import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
-import AppRoutes from './routes/AppRoutes';
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <DataProvider>
-          <AppRoutes />
-        </DataProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
 };
 
 export default AppRoutes;
