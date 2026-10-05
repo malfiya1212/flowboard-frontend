@@ -3,7 +3,7 @@ import {
   Search, Filter, Plus, Layout, List, BarChart2, 
   Settings, MoreHorizontal, Inbox, Target, Zap, CheckSquare, AlertCircle, Bookmark
 } from 'lucide-react';
-import CreateIssueModal from '../components/scrum/CreateIssueModal';
+import CreateIssueModal from "./CreateIssueModal";
 
 export default function Dashboard() {
   // UI State
