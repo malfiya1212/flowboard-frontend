@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  Search, Filter, Plus, Layout, BarChart2, 
-  Settings, MoreHorizontal, AlertCircle, CheckSquare, Bookmark, X, User, Tag, ShieldAlert
+  Search, Plus, Layout, BarChart2, 
+  Settings, MoreHorizontal, AlertCircle, CheckSquare, Bookmark, X, User, Tag
 } from 'lucide-react';
 
 export default function KanbanDashboard() {
@@ -116,7 +116,7 @@ export default function KanbanDashboard() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="text-xs text-stone-500 font-medium mb-1">
-              Workspace / FlowBoard / Continuous Kanban
+              Workspace / FlowBoard / Kanban Board
             </div>
             <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
               Kanban Flow Board
