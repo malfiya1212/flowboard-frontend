@@ -37,14 +37,25 @@ export default function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      
+      {/* ADDED: Scrum and Kanban specific routes */}
       <Route 
-        path="/dashboard" 
+        path="/scrum-dashboard" 
         element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/kanban-dashboard" 
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+
       <Route 
         path="/projects" 
         element={
