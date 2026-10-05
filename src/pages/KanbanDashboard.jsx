@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { 
-  Search, Plus, Layout, BarChart2, 
-  Settings, MoreHorizontal, AlertCircle, CheckSquare, Bookmark, X, User, Tag
+  Search, Plus, Settings, MoreHorizontal, AlertCircle, CheckSquare, Bookmark, X, User, Trash2
 } from 'lucide-react';
 
 export default function KanbanDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Kanban Columns with WIP Limits
+  // Kanban Columns with WIP Limits (Fully customizable via Board Settings)
   const [columns, setColumns] = useState([
     { id: 'backlog', title: 'Backlog', wip: 0 },
     { id: 'todo', title: 'To Do', wip: 5 },
@@ -88,16 +88,19 @@ export default function KanbanDashboard() {
   };
 
   const moveIssue = (issueId, newStatus) => {
-    // Check WIP Limit on destination column
     const targetCol = columns.find(c => c.id === newStatus);
     const currentCount = issues.filter(i => i.status === newStatus).length;
 
     if (targetCol && targetCol.wip > 0 && currentCount >= targetCol.wip) {
-      alert(`⚠ WIP Limit Reached! "${targetCol.title}" is capped at ${currentCount} items.`);
+      alert(`⚠ WIP Limit Reached! "${targetCol.title}" is capped at ${targetCol.wip} items.`);
       return;
     }
 
     setIssues(issues.map(i => i.id === issueId ? { ...i, status: newStatus } : i));
+  };
+
+  const deleteIssue = (issueId) => {
+    setIssues(issues.filter(i => i.id !== issueId));
   };
 
   const getTypeIcon = (type) => {
@@ -123,7 +126,10 @@ export default function KanbanDashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="h-9 px-3 bg-white border border-stone-200 text-stone-700 rounded-lg text-sm font-semibold hover:bg-stone-50 transition-colors flex items-center gap-2 shadow-xs cursor-pointer">
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="h-9 px-3 bg-white border border-stone-200 text-stone-700 rounded-lg text-sm font-semibold hover:bg-stone-50 transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
+            >
               <Settings size={16} />
               Board Settings & WIP
             </button>
@@ -194,9 +200,18 @@ export default function KanbanDashboard() {
                           <span className="flex items-center gap-1.5 text-xs font-bold text-stone-500">
                             {getTypeIcon(issue.type)} {issue.id}
                           </span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${issue.priority === 'Highest' || issue.priority === 'High' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-stone-100 text-stone-600'}`}>
-                            {issue.priority}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${issue.priority === 'Highest' || issue.priority === 'High' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-stone-100 text-stone-600'}`}>
+                              {issue.priority}
+                            </span>
+                            <button 
+                              onClick={() => deleteIssue(issue.id)}
+                              className="text-stone-300 hover:text-red-600 transition-colors cursor-pointer"
+                              title="Delete Issue"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         </div>
 
                         <p className="text-sm font-semibold text-stone-900 leading-snug">
@@ -220,7 +235,6 @@ export default function KanbanDashboard() {
                             <User size={12} className="text-stone-400" /> {issue.assignee || 'Unassigned'}
                           </span>
 
-                          {/* Quick Status Shift Dropdown */}
                           <select 
                             value={issue.status}
                             onChange={(e) => moveIssue(issue.id, e.target.value)}
@@ -241,6 +255,67 @@ export default function KanbanDashboard() {
         </div>
 
       </div>
+
+      {/* --- BOARD SETTINGS & WIP LIMITS MODAL --- */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-xl bg-white border border-stone-200 rounded-xl shadow-xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-stone-50">
+              <h2 className="text-base font-bold text-stone-900">Board Settings & WIP Limits</h2>
+              <button onClick={() => setIsSettingsOpen(false)} className="text-stone-400 hover:text-stone-600 cursor-pointer">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <p className="text-xs text-stone-500">
+                Customize column titles and define Work-In-Progress (WIP) constraints to prevent team bottlenecks. Set WIP to 0 for unlimited capacity.
+              </p>
+
+              <div className="space-y-3 pt-2">
+                {columns.map((col, index) => (
+                  <div key={col.id} className="flex items-center gap-3 p-3 bg-stone-50 border border-stone-200 rounded-lg">
+                    <span className="text-xs font-bold text-stone-400 w-6">#{index + 1}</span>
+                    <input 
+                      type="text" 
+                      value={col.title}
+                      onChange={(e) => {
+                        const updated = [...columns];
+                        updated[index].title = e.target.value;
+                        setColumns(updated);
+                      }}
+                      className="flex-1 h-9 px-3 bg-white border border-stone-200 rounded-lg text-xs font-semibold text-stone-800 focus:outline-none focus:border-indigo-600"
+                    />
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-stone-600 uppercase">WIP Limit:</span>
+                      <input 
+                        type="number"
+                        min="0"
+                        value={col.wip}
+                        onChange={(e) => {
+                          const updated = [...columns];
+                          updated[index].wip = parseInt(e.target.value) || 0;
+                          setColumns(updated);
+                        }}
+                        className="w-16 h-9 px-2 bg-white border border-stone-200 rounded-lg text-xs font-bold text-center text-stone-800 focus:outline-none focus:border-indigo-600"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 px-6 py-4 bg-stone-50 border-t border-stone-200">
+              <button 
+                onClick={() => setIsSettingsOpen(false)}
+                className="h-9 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs cursor-pointer"
+              >
+                Save & Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* --- CREATE ISSUE MODAL --- */}
       {isModalOpen && (
