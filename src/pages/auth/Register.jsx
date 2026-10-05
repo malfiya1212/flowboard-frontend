@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FolderKanban, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';g
 
 export default function Register() {
   const navigate = useNavigate();
@@ -21,9 +20,12 @@ export default function Register() {
     if (!name.trim()) errs.name = 'Full name is required.';
     if (!email.trim()) errs.email = 'Email address is required.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Invalid email address.';
+    
     if (!password) errs.password = 'Password is required.';
-    else if (password.length < 6) errs.password = 'Password must be at least 6 characters.';
+    else if (password.length < 8) errs.password = 'Password must be at least 8 characters.';
+    
     if (password !== confirmPassword) errs.confirmPassword = 'Passwords do not match.';
+    
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -31,12 +33,14 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setServerError('');
+    
     if (!validate()) return;
 
     setSubmitting(true);
     try {
       await register(name, email, password);
-      navigate('/projects', { replace: true });
+      // Redirect strictly to login page after successful registration
+      navigate('/login', { replace: true });
     } catch (err) {
       setServerError(err.message || 'Registration failed.');
     } finally {
@@ -108,7 +112,7 @@ export default function Register() {
                 setPassword(e.target.value);
                 setErrors((prev) => ({ ...prev, password: '' }));
               }}
-              placeholder="Minimum 6 characters"
+              placeholder="Minimum 8 characters"
               className="w-full h-10 px-3 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all"
             />
             {errors.password && <p className="text-[11px] text-red-600">{errors.password}</p>}

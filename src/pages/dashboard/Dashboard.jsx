@@ -1,15 +1,14 @@
 import React from 'react';
-import { 
-  Clock, 
-  MoreHorizontal,
-  Activity
-} from 'lucide-react';
+import { Clock, MoreHorizontal, Activity } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
+  const { user } = useAuth();
+
   const priorityWork = [
     { id: 'FB-101', title: 'Refactor Dashboard Component API Architecture', time: 'Today', status: 'IN PROGRESS' },
-    { id: 'FB-102', title: 'Refactor Dashboard Component API Architecture', time: 'Today', status: 'IN PROGRESS' },
-    { id: 'FB-103', title: 'Refactor Dashboard Component API Architecture', time: 'Today', status: 'IN PROGRESS' },
+    { id: 'FB-102', title: 'Update User Authentication Flow', time: 'Today', status: 'IN PROGRESS' },
+    { id: 'FB-103', title: 'Optimize Database Queries', time: 'Today', status: 'IN PROGRESS' },
   ];
 
   return (
@@ -25,7 +24,9 @@ export default function Dashboard() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Project Overview</h1>
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
+            Welcome back, {user?.name || 'User'}
+          </h1>
           <p className="text-sm text-stone-500 mt-1">Real-time performance metrics for your active sprint.</p>
         </div>
 
@@ -69,7 +70,7 @@ export default function Dashboard() {
           <div className="lg:col-span-2 bg-white rounded-xl border border-stone-200 shadow-sm flex flex-col">
             <div className="px-6 py-5 flex items-center justify-between border-b border-stone-100">
               <h2 className="font-semibold text-stone-800 text-sm">My Priority Work</h2>
-              <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+              <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer">
                 View All Tasks
               </button>
             </div>
@@ -96,7 +97,7 @@ export default function Dashboard() {
                       <span className="text-[10px] font-bold px-2.5 py-1 rounded bg-orange-50 text-orange-600 tracking-wide">
                         {task.status}
                       </span>
-                      <button className="text-stone-300 hover:text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="text-stone-300 hover:text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                         <MoreHorizontal size={16} />
                       </button>
                     </div>
