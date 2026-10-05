@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export default function CreateIssueModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -26,7 +26,6 @@ export default function CreateIssueModal({ isOpen, onClose, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Connect to POST /api/issues
     setTimeout(() => {
       setLoading(false);
       onSubmit(formData);
@@ -43,7 +42,7 @@ export default function CreateIssueModal({ isOpen, onClose, onSubmit }) {
           <h2 className="text-lg font-bold text-stone-900 tracking-tight">Create Issue</h2>
           <button 
             onClick={onClose}
-            className="text-stone-400 hover:text-stone-600 transition-colors rounded-lg p-1 hover:bg-stone-100"
+            className="text-stone-400 hover:text-stone-600 transition-colors rounded-lg p-1 hover:bg-stone-100 cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -182,7 +181,7 @@ export default function CreateIssueModal({ isOpen, onClose, onSubmit }) {
           <button 
             type="button" 
             onClick={onClose}
-            className="h-9 px-4 bg-white border border-stone-200 text-stone-700 rounded-lg text-sm font-semibold hover:bg-stone-100 transition-colors"
+            className="h-9 px-4 bg-white border border-stone-200 text-stone-700 rounded-lg text-sm font-semibold hover:bg-stone-100 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -190,7 +189,7 @@ export default function CreateIssueModal({ isOpen, onClose, onSubmit }) {
             type="submit" 
             form="create-issue-form"
             disabled={loading}
-            className="h-9 px-5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-70"
+            className="h-9 px-5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-70 cursor-pointer"
           >
             {loading ? 'Creating...' : 'Create Issue'}
           </button>
