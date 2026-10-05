@@ -1,16 +1,19 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-// 1. Import your Authentication Pages
+// 1. Authentication Pages
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import AdminLogin from '../pages/auth/AdminLogin';
 
-
+// 2. Onboarding Page
 import ChooseMethod from '../pages/ChooseMethod';
 
+// 3. Private / Workspace Pages
+import Dashboard from '../pages/Dashboard';
+import Projects from '../pages/Projects';
 
-// 4. Import the Route Protector
+// 4. Route Protector
 import ProtectedRoute from '../components/common/ProtectedRoute';
 
 export default function AppRoutes() {
@@ -19,12 +22,12 @@ export default function AppRoutes() {
       {/* Default route redirects to login */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* --- PUBLIC ROUTES (No login required) --- */}
+      {/* --- PUBLIC ROUTES --- */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* --- PROTECTED ROUTES (Requires login) --- */}
+      {/* --- PROTECTED ROUTES --- */}
       <Route 
         path="/choose-method" 
         element={
@@ -52,12 +55,11 @@ export default function AppRoutes() {
         } 
       />
 
-      {/* Admin Dashboard (Protected) */}
+      {/* Admin Dashboard */}
       <Route 
         path="/admin" 
         element={
           <ProtectedRoute>
-            {/* You can change this to a specific AdminDashboard component later */}
             <Dashboard />
           </ProtectedRoute>
         } 
