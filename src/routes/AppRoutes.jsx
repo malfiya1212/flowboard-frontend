@@ -4,7 +4,7 @@ import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import AdminLogin from '../pages/auth/AdminLogin';
 import ChooseMethod from '../pages/ChooseMethod';
-import Dashboard from "../pages/dashboard/Dashboard";
+import Dashboard from "../pages/Dashboard";
 import Projects from "../pages/projects/Projects";
 import ProtectedRoute from '../components/common/ProtectedRoute';
 
