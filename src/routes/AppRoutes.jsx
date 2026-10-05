@@ -16,6 +16,10 @@ import KanbanDashboard from '../pages/KanbanDashboard';
 
 // Route Protector
 import ProtectedRoute from '../components/common/ProtectedRoute';
+import CreateProject from '../pages/projects/CreateProject';
+
+// Inside your Routes:
+
 
 export default function AppRoutes() {
   return (
@@ -28,6 +32,7 @@ export default function AppRoutes() {
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/create-project" element={<ProtectedRoute><CreateProject /></ProtectedRoute>} />
 
       {/* --- PROTECTED ROUTES --- */}
       <Route 

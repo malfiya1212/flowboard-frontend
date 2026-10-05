@@ -22,7 +22,7 @@ export default function ChooseMethod() {
           
           {/* SCRUM CARD */}
           <button
-            onClick={() => navigate('/scrum-dashboard')}
+            onClick={() => navigate('/create-project', { state: { methodology: 'Scrum' } })}
             className="group relative flex flex-col items-start p-8 bg-white border border-stone-200 rounded-2xl text-left transition-all hover:border-indigo-600 hover:shadow-md cursor-pointer"
           >
             <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -39,7 +39,7 @@ export default function ChooseMethod() {
 
           {/* KANBAN CARD */}
           <button
-            onClick={() => navigate('/kanban-dashboard')}
+            onClick={() => navigate('/create-project', { state: { methodology: 'Kanban' } })}
             className="group relative flex flex-col items-start p-8 bg-white border border-stone-200 rounded-2xl text-left transition-all hover:border-indigo-600 hover:shadow-md cursor-pointer"
           >
             <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
