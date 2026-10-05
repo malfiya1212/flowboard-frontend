@@ -2,18 +2,26 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 :root {
+    /* Brand Colors */
     --color-primary: #0c66e4;
     --color-primary-hover: #0055b8;
     --color-primary-light: #deebff;
+    --color-secondary: #ebecf0;
+    --color-secondary-hover: #dfe1e6;
+    --color-tertiary: transparent;
+    --color-tertiary-hover: rgba(9, 30, 66, 0.08);
+    /* Backgrounds & Borders */
     --color-bg-main: #f4f5f7;
     --color-bg-surface: #ffffff;
     --color-bg-subtle: #f7f8fa;
     --color-bg-hover: #ebecf0;
     --color-border: #dfe1e6;
     --color-border-light: #ebecf0;
+    /* Text */
     --color-text-main: #172b4d;
     --color-text-secondary: #5e6c84;
     --color-text-muted: #8993a4;
+    /* Semantic Colors */
     --color-success: #36b37e;
     --color-success-light: #e3fcef;
     --color-warning: #ffab00;
@@ -81,24 +89,36 @@
 }
 
 @layer components {
+    /* --- BUTTONS: Primary, Secondary, Tertiary --- */
     .btn {
         @apply inline-flex items-center justify-center gap-2 rounded-[3px] px-3 py-1.5 text-sm font-medium transition-colors;
     }
     .btn-primary {
         background-color: var(--color-primary);
         color: white;
+        border: 1px solid transparent;
     }
     .btn-primary:hover {
         background-color: var(--color-primary-hover);
     }
     .btn-secondary {
-        @apply border bg-white;
-        border-color: var(--color-border);
+        background-color: var(--color-secondary);
         color: var(--color-text-main);
+        border: 1px solid transparent;
     }
     .btn-secondary:hover {
-        background-color: var(--color-bg-hover);
+        background-color: var(--color-secondary-hover);
     }
+    .btn-tertiary {
+        background-color: var(--color-tertiary);
+        color: var(--color-text-secondary);
+        border: 1px solid transparent;
+    }
+    .btn-tertiary:hover {
+        background-color: var(--color-tertiary-hover);
+        color: var(--color-text-main);
+    }
+    /* --- OTHER BUTTONS --- */
     .btn-ghost {
         @apply bg-transparent;
         color: var(--color-text-secondary);
@@ -122,6 +142,7 @@
         background-color: var(--color-bg-hover);
         color: var(--color-text-main);
     }
+    /* --- FORMS & INPUTS --- */
     .input {
         @apply w-full rounded-[3px] border bg-white px-3 py-2 text-sm outline-none transition-colors;
         border-color: var(--color-border);
@@ -143,6 +164,7 @@
         border-color: var(--color-primary);
         box-shadow: 0 0 0 1px var(--color-primary);
     }
+    /* --- LAYOUT & SURFACES --- */
     .surface {
         @apply border bg-white;
         border-color: var(--color-border-light);
@@ -157,6 +179,7 @@
     .card-hover:hover {
         @apply shadow-sm;
     }
+    /* --- NAVIGATION --- */
     .sidebar {
         @apply border-r bg-white;
         border-color: var(--color-border-light);
@@ -185,6 +208,7 @@
         background-color: var(--color-primary-light);
         color: var(--color-primary);
     }
+    /* --- KANBAN BOARD --- */
     .board {
         @apply flex gap-3 overflow-x-auto pb-4;
     }
@@ -204,6 +228,7 @@
         border-color: #b3bac5;
         box-shadow: 0 1px 3px rgb(9 30 66 / 15%);
     }
+    /* --- STATUS & BADGES --- */
     .status-todo {
         background-color: var(--color-bg-hover);
         color: var(--color-text-secondary);
@@ -252,6 +277,7 @@
         background-color: var(--color-bg-hover);
         color: var(--color-text-secondary);
     }
+    /* --- TABLES --- */
     .table {
         @apply w-full border-collapse;
     }
@@ -269,6 +295,7 @@
     .table tbody tr:hover {
         background-color: var(--color-bg-subtle);
     }
+    /* --- MODALS --- */
     .modal-overlay {
         @apply fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4;
     }
