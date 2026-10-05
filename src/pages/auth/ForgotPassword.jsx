@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Kanban, Mail, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function ForgotPassword() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -13,29 +12,20 @@ export default function ForgotPassword() {
     e.preventDefault();
     setError('');
 
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim() || !emailRegex.test(email.trim())) {
-      setError('Please enter a valid corporate email address (e.g., name@flowboard.com).');
+      setError('Please enter a valid corporate email address.');
       return;
     }
 
     setLoading(true);
 
-    // Simulate sending recovery token & activating reset flow
+    // Simulate sending the email via backend
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
-
-      // Automatically transition to Reset Password after 2.5 seconds
-      setTimeout(() => {
-        navigate('/reset-password', { state: { email: email.trim() } });
-      }, 2500);
-    }, 600);
-  };
-
-  const handleManualProceed = () => {
-    navigate('/reset-password', { state: { email: email.trim() } });
+      // Notice: We NO LONGER automatically navigate to /reset-password here!
+    }, 800);
   };
 
   return (
@@ -64,13 +54,13 @@ export default function ForgotPassword() {
                 Forgot your password?
               </h1>
               <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                Enter your verified email address to activate your password reset session.
+                Enter your verified email address and we will send you a secure link to reset your password.
               </p>
             </div>
 
             {error && (
-              <div className="mb-4 p-2.5 bg-stone-50 border border-stone-200 rounded-lg flex items-center gap-2 text-xs text-stone-800">
-                <AlertCircle size={14} className="text-stone-900 shrink-0" />
+              <div className="mb-4 p-2.5 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-xs text-red-700">
+                <AlertCircle size={14} className="shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -101,37 +91,28 @@ export default function ForgotPassword() {
                 disabled={loading}
                 className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 text-white font-semibold text-xs rounded-lg transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
-                <span>{loading ? 'Verifying email...' : 'Send Reset Link & Proceed'}</span>
+                <span>{loading ? 'Sending email...' : 'Send Reset Link'}</span>
                 <ArrowRight size={14} />
               </button>
             </form>
           </div>
         ) : (
           /* Active Recovery Confirmation */
-          <div className="text-center py-2 space-y-4">
-            <div className="w-12 h-12 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
+          <div className="text-center py-4 space-y-4">
+            <div className="w-12 h-12 bg-green-50 border border-green-200 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-xs">
               <CheckCircle2 size={24} />
             </div>
 
-            <div className="space-y-1">
-              <h2 className="text-lg font-bold text-stone-900">Email Verified</h2>
-              <p className="text-xs text-stone-500 leading-relaxed max-w-xs mx-auto">
-                Reset authorization token generated for{' '}
+            <div className="space-y-2">
+              <h2 className="text-lg font-bold text-stone-900">Check your inbox</h2>
+              <p className="text-sm text-stone-500 leading-relaxed max-w-xs mx-auto">
+                We sent a secure password reset link to <br/>
                 <span className="font-semibold text-stone-800">{email}</span>.
               </p>
-              <p className="text-[11px] text-stone-400 pt-1">
-                Redirecting to reset screen in a moment...
+              <p className="text-xs text-stone-400 pt-2">
+                Click the link in that email to create your new password. You can now close this tab.
               </p>
             </div>
-
-            <button
-              type="button"
-              onClick={handleManualProceed}
-              className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs mt-3"
-            >
-              <span>Continue to Reset Password Now</span>
-              <ArrowRight size={14} />
-            </button>
           </div>
         )}
 
