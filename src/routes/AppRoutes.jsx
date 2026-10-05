@@ -5,7 +5,7 @@ import Register from '../pages/auth/Register';
 import AdminLogin from '../pages/auth/AdminLogin';
 import ChooseMethod from '../pages/ChooseMethod';
 import Dashboard from '../pages/Dashboard';
-import Projects from '../pages/Projects';
+import Projects from "../pages/Projects";
 import ProtectedRoute from '../components/common/ProtectedRoute';
 
 export default function AppRoutes() {
